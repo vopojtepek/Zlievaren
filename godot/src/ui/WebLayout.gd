@@ -274,7 +274,7 @@ func _room_changed(id: String) -> void:
 	scene.visible = id != "office"
 	scene_info.visible = id != "office"
 	sidebar.visible = id != "office" and id != "foundry"
-	main.management_tabs.visible = id != "foundry"
+	main.management_tabs.visible = id == "office"
 	main.inspectors_container.hide()
 	_resize_scene.call_deferred()
 	area_switch.text = "TAVIAREŇ → SKLAD" if id == "foundry" else "← TAVIAREŇ"

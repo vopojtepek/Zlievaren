@@ -23,7 +23,7 @@ extends PanelContainer
 @onready var missing_workers_list: VBoxContainer = $VBox/ScrollContent/ContentBox/TabOverview/MissingList
 @onready var employees_list: GridContainer = $VBox/ScrollContent/ContentBox/TabOverview/EmployeesGrid
 
-@onready var recruit_position_select: OptionButton = $VBox/ScrollContent/ContentBox/TabHire/RecruitHead/PositionSelect
+@onready var recruit_position_buttons: HBoxContainer = $VBox/ScrollContent/ContentBox/TabHire/RecruitHead/PositionScroll/PositionButtons
 @onready var recruit_formula_label: Label = $VBox/ScrollContent/ContentBox/TabHire/RecruitHead/FormulaLabel
 @onready var recruit_shifts_list: VBoxContainer = $VBox/ScrollContent/ContentBox/TabHire/ShiftsList
 
@@ -77,7 +77,6 @@ func _ready() -> void:
 	btn_tab_payroll.pressed.connect(func(): _switch_tab("payroll"))
 	
 	btn_pay_debt.pressed.connect(_on_pay_debt)
-	recruit_position_select.item_selected.connect(_on_recruit_position_selected)
 	
 	_switch_tab("overview")
 	_populate_recruit_positions()
@@ -122,12 +121,21 @@ func _populate_recruit_positions() -> void:
 		return
 	var positions = FoundryEngine.positions(state)
 	cached_position_keys.clear()
-	recruit_position_select.clear()
+	for child in recruit_position_buttons.get_children():
+		recruit_position_buttons.remove_child(child)
+		child.queue_free()
 	
 	for p in positions:
 		if p.crew == 0:
 			cached_position_keys.append(p.key)
-			recruit_position_select.add_item(p.label)
+			var button = Button.new()
+			button.text = p.label
+			button.tooltip_text = "Nábor · " + p.label
+			button.toggle_mode = true
+			button.custom_minimum_size = Vector2(116, 100)
+			_style_position_icon(button, p.role)
+			button.pressed.connect(_on_recruit_position_selected.bind(cached_position_keys.size() - 1))
+			recruit_position_buttons.add_child(button)
 			
 	if not cached_position_keys.is_empty():
 		var found_match = false
@@ -141,6 +149,15 @@ func _populate_recruit_positions() -> void:
 		if not found_match:
 			recruit_position_key = cached_position_keys[0]
 	_sync_position_selection()
+
+func _style_position_icon(button: Button, role: String) -> void:
+	var icons = {"ladle": "worker_operator", "furnace": "worker_furnace", "warehouse": "worker_storekeeper", "washer": "worker_washer", "foreman": "foreman_miso", "operator": "worker_operator"}
+	button.icon = load("res://assets/textures/characters/%s.svg" % icons[role])
+	button.expand_icon = true
+	button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	button.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+	button.add_theme_constant_override("icon_max_width", 42)
+	button.add_theme_font_size_override("font_size", 13)
 
 func _sync_position_selection() -> void:
 	var state = _get_state()
@@ -159,11 +176,13 @@ func _sync_position_selection() -> void:
 	if cur_pos != null:
 		for i in range(cached_position_keys.size()):
 			var k = cached_position_keys[i]
+			var button = recruit_position_buttons.get_child(i) as Button
+			button.set_pressed_no_signal(false)
+			button.modulate = Color.WHITE
 			for p in positions:
 				if p.key == k and p.role == cur_pos.role and p.slot == cur_pos.slot:
-					if recruit_position_select.selected != i:
-						recruit_position_select.selected = i
-					return
+					button.set_pressed_no_signal(true)
+					button.modulate = Color("f4ce88")
 
 func _on_tick(_state: Dictionary, _delta: float) -> void:
 	if not is_visible_in_tree():
@@ -246,7 +265,10 @@ func _update_overview_tab(active_employees: Array, force: bool = false) -> void:
 	_last_overview_key = overview_key
 	
 	# Missing list
+	var old_scroll = missing_workers_list.get_node_or_null("VacancyScroll") as ScrollContainer
+	var scroll_position = old_scroll.scroll_horizontal if old_scroll != null else 0
 	for child in missing_workers_list.get_children():
+		missing_workers_list.remove_child(child)
 		child.queue_free()
 		
 	var positions = FoundryEngine.positions(state)
@@ -261,7 +283,17 @@ func _update_overview_tab(active_employees: Array, force: bool = false) -> void:
 		ok_lbl.modulate = Color(0.4, 0.9, 0.6)
 		missing_workers_list.add_child(ok_lbl)
 	else:
+		var vacancy_scroll = ScrollContainer.new()
+		vacancy_scroll.name = "VacancyScroll"
+		vacancy_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		vacancy_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		vacancy_scroll.follow_focus = true
+		var vacancy_row = HBoxContainer.new()
+		vacancy_row.add_theme_constant_override("separation", 8)
+		vacancy_scroll.add_child(vacancy_row)
+		missing_workers_list.add_child(vacancy_scroll)
 		for p in missing:
+			var e = FoundryEngine.assigned(state, p.key)
 			var card = PanelContainer.new()
 			card.mouse_filter = Control.MOUSE_FILTER_PASS
 			var style = StyleBoxFlat.new()
@@ -269,10 +301,10 @@ func _update_overview_tab(active_employees: Array, force: bool = false) -> void:
 			style.border_color = Color("#b17e5c")
 			style.set_border_width_all(1)
 			style.set_corner_radius_all(9)
-			style.set_content_margin_all(18)
+			style.set_content_margin_all(10 if e == null else 18)
 			card.add_theme_stylebox_override("panel", style)
 			
-			var card_box = HBoxContainer.new()
+			var card_box: BoxContainer = VBoxContainer.new() if e == null else HBoxContainer.new()
 			card_box.add_theme_constant_override("separation", 16)
 			
 			var info_box = VBoxContainer.new()
@@ -280,15 +312,17 @@ func _update_overview_tab(active_employees: Array, force: bool = false) -> void:
 			var title_l = Label.new()
 			title_l.text = p.label
 			title_l.add_theme_font_size_override("font_size", 14)
-			var e = FoundryEngine.assigned(state, p.key)
 			var sub_l = Label.new()
 			sub_l.text = ("%s neprišiel na smenu." % e.name) if e != null else "Pracovné miesto je voľné."
 			sub_l.modulate = Color(0.9, 0.7, 0.7)
 			info_box.add_child(title_l)
 			info_box.add_child(sub_l)
-			card_box.add_child(info_box)
+			if e != null:
+				card_box.add_child(info_box)
+			else:
+				info_box.free()
 			
-			var actions_box = HBoxContainer.new()
+			var actions_box: BoxContainer = VBoxContainer.new() if e == null else HBoxContainer.new()
 			actions_box.add_theme_constant_override("separation", 8)
 			var choices = FoundryEngine.overtime_choices(state, p.key)
 			for c in choices:
@@ -307,17 +341,29 @@ func _update_overview_tab(active_employees: Array, force: bool = false) -> void:
 			
 			if e == null:
 				var btn_rec = Button.new()
-				btn_rec.text = "Vybrať uchádzača →"
+				btn_rec.text = p.label
+				btn_rec.tooltip_text = "Vybrať uchádzača · " + p.label
+				btn_rec.set_meta("vacancy_position", p.key)
+				btn_rec.custom_minimum_size = Vector2(116, 100)
+				_style_position_icon(btn_rec, p.role)
 				var p_key = p.key
 				btn_rec.pressed.connect(func():
 					recruit_position_key = p_key
 					_switch_tab("hire")
 				)
-				actions_box.add_child(btn_rec)
+				card_box.add_child(btn_rec)
 				
-			card_box.add_child(actions_box)
+			if actions_box.get_child_count() > 0:
+				card_box.add_child(actions_box)
+			else:
+				actions_box.free()
 			card.add_child(card_box)
-			missing_workers_list.add_child(card)
+			if e == null:
+				vacancy_row.add_child(card)
+			else:
+				missing_workers_list.add_child(card)
+		vacancy_scroll.visible = vacancy_row.get_child_count() > 0
+		vacancy_scroll.set_deferred("scroll_horizontal", scroll_position)
 			
 	# Active employees grid
 	for child in employees_list.get_children():

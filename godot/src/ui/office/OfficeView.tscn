@@ -230,8 +230,14 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 13
 text = "Vyber pozíciu:"
 
-[node name="PositionSelect" type="OptionButton" parent="VBox/ScrollContent/ContentBox/TabHire/RecruitHead"]
+[node name="PositionScroll" type="ScrollContainer" parent="VBox/ScrollContent/ContentBox/TabHire/RecruitHead"]
+custom_minimum_size = Vector2(0, 120)
 layout_mode = 2
+vertical_scroll_mode = 0
+
+[node name="PositionButtons" type="HBoxContainer" parent="VBox/ScrollContent/ContentBox/TabHire/RecruitHead/PositionScroll"]
+layout_mode = 2
+theme_override_constants/separation = 8
 
 [node name="FormulaLabel" type="Label" parent="VBox/ScrollContent/ContentBox/TabHire/RecruitHead"]
 layout_mode = 2

@@ -39,7 +39,22 @@ func capture() -> void:
 		await shot("layout-" + room)
 		check(layout.sidebar.size.x <= 346 or room == "office", "Sidebar width stays consistent in " + room)
 		check(main.office_view.visible == (room == "office"), "Office visibility matches navigation")
-	gm.change_room("warehouse")
+		check(main.management_tabs.visible == (room == "office"), "Management panel is only shown in office")
+	gm.change_room("office")
+	for width in [1440, 800]:
+		root.size = Vector2i(width, 1000)
+		await shot("office-vacancies-%d" % width)
+		var vacancies = main.office_view.missing_workers_list.get_node("VacancyScroll") as ScrollContainer
+		var row = vacancies.get_child(0) as HBoxContainer
+		check(vacancies.get_global_rect().end.x <= width, "Vacancy scroll fits viewport")
+		check(row.get_child_count() > 1, "Several vacancies are shown")
+		check(row.get_child(0).position.y == row.get_child(1).position.y, "Vacancies share one row")
+		if width == 800:
+			check(vacancies.get_h_scroll_bar().visible, "Narrow viewport offers horizontal scrolling")
+			vacancies.scroll_horizontal = 1000
+			await settle()
+			check(vacancies.scroll_horizontal > 0, "Vacancy row can be scrolled")
+	root.size = Vector2i(1440, 1000)
 	for tab in ["stock", "market", "contracts", "development"]:
 		main.management_tabs._switch_tab(tab)
 		await settle()

@@ -21,6 +21,7 @@ func run_all(tree: SceneTree = null) -> bool:
 	test_hire_buttons_stability_under_ticks()
 	test_hire_employee_click_and_state_update()
 	test_navigation_from_overview_select_candidate()
+	test_vacancy_updates_and_overtime()
 	test_overtime_calling()
 	test_dismiss_employee()
 	test_pay_debt()
@@ -57,7 +58,7 @@ func test_office_initialization_and_positions() -> void:
 	office._populate_recruit_positions()
 	
 	assert_true(office.cached_position_keys.size() >= 5, "Has position keys cached")
-	assert_eq(office.cached_position_keys.size(), office.recruit_position_select.item_count, "Dropdown count matches keys")
+	assert_eq(office.cached_position_keys.size(), office.recruit_position_buttons.get_child_count(), "Icon count matches keys")
 	
 	# Verify standard jobs are present in dropdown
 	var found_ladle = false
@@ -150,22 +151,59 @@ func test_navigation_from_overview_select_candidate() -> void:
 	var office = _create_office(s)
 	office._switch_tab("overview")
 	
-	# Find 'Vybrať uchádzača →' button
+	# Each vacancy icon opens recruitment for its exact position.
 	var select_btns = []
 	for node in office.find_children("*", "Button", true, false):
-		if node.text.begins_with("Vybrať uchádzača"):
+		if node.has_meta("vacancy_position"):
 			select_btns.append(node)
 			
 	assert_true(select_btns.size() > 0, "Missing worker has candidate selection button")
 	var btn: Button = select_btns[0]
+	var position_key = btn.get_meta("vacancy_position")
 	btn.emit_signal("pressed")
 	
 	# Should now be in hire tab
 	assert_eq(office.active_tab, "hire", "Active tab switched to hire")
-	assert_true(office.recruit_position_select.selected >= 0, "Dropdown synchronized with selected position")
+	assert_eq(office.recruit_position_key, position_key, "Recruitment selects the clicked vacancy")
+	assert_true(office.recruit_position_buttons.get_children().any(func(b): return b.button_pressed), "Icons synchronized with selected position")
 	n += 3
 	_cleanup(office)
 	print("OK navigation from overview selects position and synchronizes dropdown")
+
+func test_vacancy_updates_and_overtime() -> void:
+	var s = FoundryEngine.fresh()
+	s.clock = 45.0
+	var pos0 = FoundryEngine.position_key("operator", 0, 0)
+	var pos1 = FoundryEngine.position_key("operator", 1, 0)
+	var candidate = s.hr.candidates[pos1][0]
+	FoundryEngine.perform(s, {"type": "personnel", "action": "hire", "position": pos1, "candidateId": candidate.id})
+	var office = _create_office(s)
+	var vacancy_scroll = office.missing_workers_list.get_node("VacancyScroll")
+	var overtime_buttons = vacancy_scroll.find_children("*", "Button", true, false).filter(func(b): return b.text.begins_with("Zavolať"))
+	assert_true(not overtime_buttons.is_empty(), "Vacant position retains overtime action")
+	var clock = office.get_node("/root/SimulationClock")
+	var was_paused = clock.is_paused
+	clock.is_paused = true
+	office._update_view(true)
+	vacancy_scroll = office.missing_workers_list.get_node("VacancyScroll")
+	for button in vacancy_scroll.find_children("*", "Button", true, false):
+		if button.text.begins_with("Zavolať"):
+			assert_true(button.disabled, "Vacancy overtime is disabled during pause")
+	clock.is_paused = was_paused
+	candidate = s.hr.candidates[pos0][0]
+	FoundryEngine.perform(s, {"type": "personnel", "action": "hire", "position": pos0, "candidateId": candidate.id})
+	office._update_view(true)
+	for button in office.missing_workers_list.find_children("*", "Button", true, false):
+		assert_true(button.get_meta("vacancy_position", "") != pos0, "Hired position no longer has a vacancy icon")
+	s.clock = 105.0
+	office._update_view()
+	for button in office.missing_workers_list.find_children("*", "Button", true, false):
+		if button.has_meta("vacancy_position"):
+			var position = FoundryEngine.positions(s).filter(func(p): return p.key == button.get_meta("vacancy_position"))[0]
+			assert_true(FoundryEngine.position_active(s, position), "Vacancies follow the current shift")
+	n += 4
+	_cleanup(office)
+	print("OK vacancies refresh after hiring and shift change, retaining guarded overtime actions")
 
 func test_overtime_calling() -> void:
 	var s = FoundryEngine.fresh()
