@@ -1,6 +1,7 @@
 extends SceneTree
 
 const TestOfficeUI = preload("res://tests/TestOfficeUI.gd")
+const TestContractsUI = preload("res://tests/TestContractsUI.gd")
 
 var _ran: bool = false
 
@@ -19,6 +20,7 @@ func _process(_delta: float) -> bool:
 		TestRejects.new(),
 		TestOperators.new(),
 		TestContracts.new(),
+		TestContractsUI.new(),
 		TestUpdate19.new(),
 		TestUpdate20.new(),
 		TestUpdate21.new(),
@@ -35,7 +37,7 @@ func _process(_delta: float) -> bool:
 		var s_name = s.get_script().resource_path.get_file()
 		print("\n=== " + s_name + " ===")
 		var ok: bool = false
-		if s is TestOfficeUI:
+		if s is TestOfficeUI or s is TestContractsUI:
 			ok = s.run_all(self)
 		else:
 			ok = s.run_all()

@@ -351,7 +351,7 @@ static func relationship(s: Dictionary, buyer: String) -> Dictionary:
 
 static func company_terms(s: Dictionary, buyer: String) -> Dictionary:
 	var score: int = int(relationship(s, buyer).score)
-	var bonus: int = int(round(float(score) * 0.3))
+	var bonus: int = int(floor(float(score) * 0.3 + 0.5)) # JavaScript Math.round uses positive infinity for ties.
 	var volume: float = 1.0 + float(score) / 50.0
 	var label: String = "Strategický partner" if score >= 60 else ("Spoľahlivý dodávateľ" if score >= 20 else ("Rastúca dôvera" if score > 0 else ("Poškodený vzťah" if score <= -40 else ("Narušená dôvera" if score < 0 else "Nový vzťah"))))
 	return { "score": score, "bonus": bonus, "volume": volume, "label": label }

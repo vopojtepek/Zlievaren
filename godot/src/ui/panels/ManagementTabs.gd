@@ -12,15 +12,13 @@ extends PanelContainer
 @onready var market_ticker: Label = $VBox/Content/MarketPanel/TickerLabel
 @onready var market_items_list: VBoxContainer = $VBox/Content/MarketPanel/Scroll/ItemsList
 
-@onready var contracts_list: GridContainer = $VBox/Content/ContractsPanel/Scroll/ContractsList
-@onready var companies_list: HBoxContainer = $VBox/Content/ContractsPanel/CompaniesList
+var web_contracts: VBoxContainer
 
 @onready var ledger_list: VBoxContainer = $VBox/Content/LedgerPanel/Scroll/LedgerList
 
 var current_tab: String = "market"
 var current_state: Dictionary = {}
 var _last_market_key: String = ""
-var _last_contracts_key: String = ""
 var _last_ledger_key: String = ""
 var extra_buttons: Dictionary = {}
 var stock_panel: HBoxContainer
@@ -59,6 +57,15 @@ func _connect_signals() -> void:
 			eb.pause_toggled.connect(_on_pause_toggled)
 
 func _ready() -> void:
+	for child in contracts_panel.get_children():
+		contracts_panel.remove_child(child)
+		child.queue_free()
+	web_contracts = preload("res://src/ui/panels/WebContracts.gd").new()
+	contracts_panel.add_child(web_contracts)
+	web_contracts.command_requested.connect(func(command: Dictionary):
+		_execute(command)
+		_update_view(true)
+	)
 	for c in market_panel.get_children():
 		c.hide()
 	web_market = preload("res://src/ui/panels/WebMarket.gd").new()
@@ -364,120 +371,8 @@ func _update_market(state: Dictionary, force: bool = false) -> void:
 		
 		market_items_list.add_child(row)
 
-func _update_contracts(state: Dictionary, force: bool = false) -> void:
-	var paused = SimulationClock.is_paused
-	var contracts_key = "%d:%d:%s" % [
-		state.get("revision", 0),
-		int(ceil(state.clock)),
-		str(paused)
-	]
-	if not force and contracts_key == _last_contracts_key:
-		return
-	_last_contracts_key = contracts_key
-	
-	for child in contracts_list.get_children():
-		child.queue_free()
-		
-	var contracts = state.contracts
-	var active_or_offers = []
-	for c in contracts:
-		if c.status == "offer" or c.status == "active":
-			active_or_offers.append(c)
-			
-	if active_or_offers.is_empty():
-		var empty_lbl = Label.new()
-		empty_lbl.text = "Momentálne nie sú dostupné žiadne zákazky. Nové ponuky prichádzajú každých 90 sekúnd."
-		contracts_list.add_child(empty_lbl)
-	else:
-		for c in active_or_offers:
-			var card = PanelContainer.new()
-			card.size_flags_horizontal = SIZE_EXPAND_FILL
-			card.mouse_filter = Control.MOUSE_FILTER_PASS
-			var style = StyleBoxFlat.new()
-			style.bg_color = Color(0.14, 0.20, 0.22, 0.95)
-			style.border_color = Color(0.3, 0.45, 0.5, 1.0)
-			style.set_border_width_all(1)
-			style.set_corner_radius_all(6)
-			style.set_content_margin_all(19)
-			card.add_theme_stylebox_override("panel", style)
-			
-			var hbox = VBoxContainer.new()
-			hbox.add_theme_constant_override("separation", 16)
-			
-			var contract_icon = TextureRect.new()
-			contract_icon.custom_minimum_size = Vector2(36, 36)
-			contract_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-			contract_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-			var c_icon_path = "res://assets/textures/products/%s.svg" % c.product
-			if ResourceLoader.exists(c_icon_path):
-				contract_icon.texture = load(c_icon_path)
-			hbox.add_child(contract_icon)
-			
-			var vbox = VBoxContainer.new()
-			vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			
-			var buyer_lbl = Label.new()
-			buyer_lbl.text = "%s · %s" % [c.buyer, "PONUKA" if c.status == "offer" else "AKTÍVNA ZÁKAZKA"]
-			buyer_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-			buyer_lbl.modulate = Color(0.957, 0.808, 0.533, 1)
-			vbox.add_child(buyer_lbl)
-			
-			var p = Constants.PRODUCTS.get(c.product, {})
-			var prod_name = p.get("name", c.product)
-			var avail = FoundryEngine.available(state, c.product)
-			var desc_lbl = Label.new()
-			desc_lbl.text = "Požiadavka: %d ks %s (na sklade máš %d ks)" % [c.quantity, prod_name, avail]
-			desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-			desc_lbl.add_theme_font_override("font", preload("res://assets/fonts/BarlowCondensed-SemiBold.ttf"))
-			desc_lbl.add_theme_font_size_override("font_size", 24)
-			vbox.add_child(desc_lbl)
-			
-			var deadline = c.offerDeadline if c.status == "offer" else c.deadline
-			var time_left = maxf(0.0, float(deadline) - state.clock)
-			var time_lbl = Label.new()
-			time_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-			if c.status == "offer":
-				time_lbl.text = "Platnosť ponuky: %d s · Odmena: %s" % [int(ceil(time_left)), Format.cash(c.payout)]
-			else:
-				time_lbl.text = "Termín dodania: %d s · Odmena: %s" % [int(ceil(time_left)), Format.cash(c.payout)]
-			time_lbl.modulate = Color(0.4, 0.9, 0.6) if time_left > 30 else Color(1.0, 0.4, 0.4)
-			vbox.add_child(time_lbl)
-			
-			hbox.add_child(vbox)
-			
-			var btn = Button.new()
-			btn.custom_minimum_size = Vector2(140, 40)
-			var cid = c.id
-			if c.status == "offer":
-				btn.text = "Prijať zákazku"
-				btn.disabled = paused
-				btn.pressed.connect(func():
-					_execute({ "type": "contract", "action": "accept", "id": cid })
-					_update_view(true)
-				)
-			else:
-				btn.text = "Splniť zákazku"
-				btn.disabled = paused or avail < c.quantity
-				btn.pressed.connect(func():
-					_execute({ "type": "contract", "action": "fulfill", "id": cid })
-					_update_view(true)
-				)
-			hbox.add_child(btn)
-			
-			card.add_child(hbox)
-			contracts_list.add_child(card)
-			
-	# Company relationships
-	for child in companies_list.get_children():
-		child.queue_free()
-		
-	for comp_name in Constants.COMPANIES:
-		var rel = FoundryEngine.relationship(state, comp_name)
-		var rel_lbl = Label.new()
-		rel_lbl.text = "%s: %d %% dôvera (%d dodaných)" % [comp_name, rel.score, rel.delivered]
-		rel_lbl.add_theme_font_size_override("font_size", 11)
-		rel_lbl.modulate = Color(0.7, 0.85, 0.8)
-		companies_list.add_child(rel_lbl)
+func _update_contracts(state: Dictionary, _force: bool = false) -> void:
+	web_contracts.refresh(state, _is_paused())
 
 func _update_ledger(state: Dictionary, force: bool = false) -> void:
 	var ledger_key = "%d:%d" % [state.get("revision", 0), state.ledger.size()]

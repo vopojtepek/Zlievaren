@@ -1,5 +1,19 @@
 # Rozhranie podľa webovej verzie — 3. 10. 2026
 
+## Zákazky — aktualizácia 3. 10. 2026
+
+Panel `WebContracts.gd` zobrazuje pravidlá, aktívnu kapacitu, všetkých päť
+stavov zákaziek a úplné vzťahy s firmami podľa lokálneho `dist/game.js`.
+Karty sa aktualizujú podľa ID bez nahrádzania tlačidiel počas odpočtu;
+uzavreté položky odstráni až denná obnova simulácie. Mriežka má 3/2/1
+stĺpce pri šírkach nad 850/do 850/do 620 px. Príkazy a uloženie sa nemenia.
+Záporné polovice bonusov sa zaokrúhľujú rovnako ako JavaScript Math.round.
+
+Overenie: 13 testovacích sád vrátane TestContractsUI; samostatné vizuálne
+overenie `tests/capture_contracts.gd` pri 1440, 800 a 600 px kontroluje
+šírku, počet stĺpcov a zachovanie fokusu aj posúvania. Celá scéna sa
+overuje cez `tests/capture_layout.gd`. Výstupy sú v `artifacts/`.
+
 Referenciou sú lokálne súbory `Zlievaren-main/dist/index.html`, `style.css`,
 `game.js` a `renderer.js`. Úpravy sú v natívnom Godot projekte.
 

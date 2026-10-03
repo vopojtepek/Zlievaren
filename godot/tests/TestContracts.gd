@@ -172,5 +172,36 @@ func run_all() -> bool:
 	print("OK late unlock offers survive midnight until their own acceptance deadline")
 	n += 1
 
+	var guards = fresh()
+	assert_true(act(guards, guards.contracts[0], "accept").ok)
+	assert_true(act(guards, guards.contracts[1], "accept").ok)
+	assert_eq(act(guards, guards.contracts[2], "accept").ok, false)
+	var guarded = guards.contracts[0]
+	guards.goods[guarded.product] = guarded.quantity
+	guards.limits.append({"id": "reserved-test", "product": guarded.product, "quantity": 1, "minPrice": 99999})
+	var before_money = guards.money
+	assert_eq(act(guards, guarded, "fulfill").ok, false)
+	assert_eq(guards.money, before_money)
+	guards.limits.clear()
+	assert_true(act(guards, guarded, "fulfill").ok)
+	assert_eq(act(guards, guarded, "fulfill").ok, false)
+	var unstaffed = FoundryEngine.fresh()
+	var pending = unstaffed.contracts[0]
+	act(unstaffed, pending, "accept")
+	unstaffed.goods[pending.product] = pending.quantity
+	assert_eq(act(unstaffed, pending, "fulfill").message, "Na expedíciu zákazky chýba skladník. Otvor Kanceláriu.")
+	assert_eq(pending.status, "active")
+	assert_eq(unstaffed.goods[pending.product], pending.quantity)
+	n += 1
+	var rounding = fresh()
+	var buyer = Constants.COMPANIES[0]
+	# Expected results from the web's Math.round(score * .3).
+	for pair in [[-100, -30], [-95, -28], [-15, -4], [-5, -1], [0, 0], [5, 2], [15, 5], [100, 30]]:
+		rounding.relationships[buyer].score = pair[0]
+		assert_eq(FoundryEngine.company_terms(rounding, buyer).bonus, pair[1])
+		var offer = FoundryEngine.make_offer(rounding, "rounding", "clean_iron_pipe", 4, buyer)
+		assert_eq(offer.bonus, pair[1])
+	n += 1
+	print("OK capacity, reservations, warehouse staffing and JavaScript bonus rounding")
 	print(str(n) + " company contract checks passed.")
 	return true
