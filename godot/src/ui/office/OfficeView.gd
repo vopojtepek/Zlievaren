@@ -1,6 +1,8 @@
 class_name OfficeView
 extends PanelContainer
 
+const PersonnelCard = preload("res://src/ui/office/PersonnelCard.gd")
+
 @onready var employees_count_badge: Label = $VBox/TopHeader/EmployeesCountBadge
 @onready var next_pay_label: Label = $VBox/StatsStrip/NextPayBox/Value
 @onready var accrued_pay_label: Label = $VBox/StatsStrip/AccruedBox/Value
@@ -69,6 +71,8 @@ func _connect_signals() -> void:
 			eb.pause_toggled.connect(_on_pause_toggled)
 
 func _ready() -> void:
+	$VBox/ScrollContent.resized.connect(_resize_personnel_grids)
+	employees_list.add_to_group("personnel_grids")
 	_connect_signals()
 	visibility_changed.connect(_on_visibility_changed)
 	
@@ -367,87 +371,23 @@ func _update_overview_tab(active_employees: Array, force: bool = false) -> void:
 			
 	# Active employees grid
 	for child in employees_list.get_children():
+		employees_list.remove_child(child)
 		child.queue_free()
-		
 	for e in active_employees:
-		var card = PanelContainer.new()
-		card.mouse_filter = Control.MOUSE_FILTER_PASS
-		var style = StyleBoxFlat.new()
-		style.bg_color = Color("#1f3742")
-		style.border_color = Color(0.25, 0.38, 0.40, 1.0)
-		style.set_border_width_all(1)
-		style.set_corner_radius_all(10)
-		style.set_content_margin_all(20)
-		card.custom_minimum_size = Vector2(280, 180)
-		card.add_theme_stylebox_override("panel", style)
-		
-		var vbox = VBoxContainer.new()
-		vbox.add_theme_constant_override("separation", 6)
-		
-		var p = null
+		var position = {"label": e.position, "hours": "", "role": e.role}
 		for pos in positions:
 			if pos.key == e.position:
-				p = pos
+				position = pos
 				break
-		var p_label = p.label if p != null else e.position
-		var p_hours = p.hours if p != null else ""
-		
-		var status_str = _get_office_status(e)
-		var top_row = HBoxContainer.new()
-		var lbl_pos = Label.new()
-		lbl_pos.text = p_label
-		lbl_pos.modulate = Color(0.7, 0.8, 0.8)
-		lbl_pos.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		var lbl_stat = Label.new()
-		lbl_stat.text = status_str
-		if status_str == "Neprišiel na smenu":
-			lbl_stat.modulate = Color(1.0, 0.4, 0.4)
-		elif status_str == "V práci":
-			lbl_stat.modulate = Color(0.4, 0.9, 0.6)
-		elif status_str == "Nadčas":
-			lbl_stat.modulate = Color(0.9, 0.8, 0.4)
-		top_row.add_child(lbl_pos)
-		top_row.add_child(lbl_stat)
-		vbox.add_child(top_row)
-		
-		var name_lbl = Label.new()
-		name_lbl.text = e.name
-		name_lbl.add_theme_font_size_override("font_size", 16)
-		vbox.add_child(name_lbl)
-		
-		var pay_lbl = Label.new()
-		pay_lbl.text = "%s · %s / smena" % [p_hours, Format.cash(FoundryEngine.regular_shift_pay(e))]
-		pay_lbl.modulate = Color(0.8, 0.9, 0.8)
-		vbox.add_child(pay_lbl)
-		
-		var skills_text = "Absencia: %.1f %%" % float(e.absence)
-		if FoundryEngine.has_defect(e.role):
-			skills_text = "Kvalita: %d %% · " % int(e.defect) + skills_text
-		var skills_lbl = Label.new()
-		skills_lbl.text = skills_text
-		skills_lbl.modulate = Color(0.9, 0.8, 0.6)
-		vbox.add_child(skills_lbl)
-		
-		var days_employed = int(floor((state.clock - e.hiredAt) / Constants.DAY))
-		var tenure_mos = FoundryEngine.tenure(state, e)
-		var sev = FoundryEngine.severance(state, e)
-		var sev_lbl = Label.new()
-		sev_lbl.text = "Zamestnaný: %d dní (%d mes.) · Odstupné: %s" % [days_employed, tenure_mos, Format.cash(sev)]
-		sev_lbl.add_theme_font_size_override("font_size", 11)
-		vbox.add_child(sev_lbl)
-		
-		var btn_dismiss = Button.new()
-		btn_dismiss.text = "Prepustiť · odstupné %s" % Format.cash(sev)
-		btn_dismiss.disabled = paused
+		var card = PersonnelCard.new()
+		card.configure(e, position, state, false, _get_office_status(e), paused)
 		var emp_id = e.id
-		btn_dismiss.pressed.connect(func():
-			_execute({ "type": "personnel", "action": "dismiss", "employeeId": emp_id })
+		card.action_button.pressed.connect(func():
+			_execute({"type": "personnel", "action": "dismiss", "employeeId": emp_id})
 			_update_view(true)
 		)
-		vbox.add_child(btn_dismiss)
-		
-		card.add_child(vbox)
 		employees_list.add_child(card)
+	_resize_personnel_grids()
 
 func _update_hire_tab(force: bool = false) -> void:
 	var state = _get_state()
@@ -479,6 +419,7 @@ func _update_hire_tab(force: bool = false) -> void:
 		recruit_formula_label.text = "Mzdu ovplyvňuje kvalita aj absencia. Riziko nepodarku sa uplatňuje pri obsluhe odstredivky."
 		
 	for child in recruit_shifts_list.get_children():
+		recruit_shifts_list.remove_child(child)
 		child.queue_free()
 		
 	var shifts = []
@@ -503,65 +444,29 @@ func _update_hire_tab(force: bool = false) -> void:
 			occ_lbl.modulate = Color(0.4, 0.9, 0.6)
 			shift_box.add_child(occ_lbl)
 		else:
-			var cand_grid = HBoxContainer.new()
+			var cand_grid = GridContainer.new()
+			cand_grid.add_to_group("personnel_grids")
+			cand_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			cand_grid.add_theme_constant_override("h_separation", 16)
+			cand_grid.add_theme_constant_override("v_separation", 16)
 			cand_grid.add_theme_constant_override("separation", 12)
 			var candidates = state.hr.candidates.get(p.key, [])
 			
 			for c in candidates:
-				var c_card = PanelContainer.new()
-				c_card.mouse_filter = Control.MOUSE_FILTER_PASS
-				var style = StyleBoxFlat.new()
-				style.bg_color = Color(0.14, 0.20, 0.22, 0.95)
-				style.border_color = Color(0.3, 0.45, 0.5, 1.0)
-				style.set_border_width_all(1)
-				style.set_corner_radius_all(9)
-				style.set_content_margin_all(18)
-				c_card.add_theme_stylebox_override("panel", style)
-				
-				var cvbox = VBoxContainer.new()
-				cvbox.add_theme_constant_override("separation", 4)
-				
-				var c_name = Label.new()
-				c_name.text = c.name
-				c_name.add_theme_font_size_override("font_size", 14)
-				cvbox.add_child(c_name)
-				
-				var preview = c.duplicate(true)
-				for k in p.keys():
-					preview[k] = p[k]
-					
-				var skills_t = "Absencia: %.1f %%" % float(c.absence)
-				if FoundryEngine.has_defect(p.role):
-					skills_t = "Kvalita: %d %% · " % int(c.defect) + skills_t
-				var s_lbl = Label.new()
-				s_lbl.text = skills_t
-				s_lbl.add_theme_font_size_override("font_size", 11)
-				s_lbl.modulate = Color(0.9, 0.8, 0.6)
-				cvbox.add_child(s_lbl)
-				
-				var reg_pay = FoundryEngine.regular_shift_pay(preview)
-				var pay_lbl = Label.new()
-				pay_lbl.text = "%s / smena" % Format.cash(reg_pay)
-				pay_lbl.modulate = Color(0.4, 0.9, 0.6)
-				cvbox.add_child(pay_lbl)
-				
-				var btn_hire = Button.new()
-				btn_hire.text = "Prijať"
-				btn_hire.disabled = paused
+				var c_card = PersonnelCard.new()
+				c_card.configure(c, p, state, true, "", paused)
 				var c_id = c.id
 				var p_key = p.key
-				btn_hire.pressed.connect(func():
-					_execute({ "type": "personnel", "action": "hire", "position": p_key, "candidateId": c_id })
+				c_card.action_button.pressed.connect(func():
+					_execute({"type": "personnel", "action": "hire", "position": p_key, "candidateId": c_id})
 					_update_view(true)
 				)
-				cvbox.add_child(btn_hire)
-				
-				c_card.add_child(cvbox)
 				cand_grid.add_child(c_card)
-				
+
 			shift_box.add_child(cand_grid)
 			
 		recruit_shifts_list.add_child(shift_box)
+	_resize_personnel_grids()
 
 func _update_payroll_tab(force: bool = false) -> void:
 	var state = _get_state()
@@ -644,3 +549,11 @@ func _update_payroll_tab(force: bool = false) -> void:
 					
 			hist_card.add_child(hvbox)
 			payroll_history_list.add_child(hist_card)
+
+func _resize_personnel_grids() -> void:
+	# Read the viewport, so shrinking can remove columns despite grid minimum sizes.
+	var available = maxf(280, $VBox/ScrollContent.size.x - 24)
+	var count = maxi(1, int((available + 16) / 296))
+	for grid in get_tree().get_nodes_in_group("personnel_grids"):
+		if is_ancestor_of(grid):
+			grid.columns = count
