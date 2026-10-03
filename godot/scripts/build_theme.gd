@@ -68,8 +68,8 @@ func _init() -> void:
 	theme.set_stylebox("disabled", "Button", sb_btn_disabled)
 	theme.set_stylebox("focus", "Button", sb_btn_hover)
 	
-	theme.set_font("font", "Button", font_semi)
-	theme.set_font_size("font_size", "Button", 15)
+	theme.set_font("font", "Button", font_body)
+	theme.set_font_size("font_size", "Button", 13)
 	theme.set_color("font_color", "Button", col_text)
 	theme.set_color("font_hover_color", "Button", Color.WHITE)
 	theme.set_color("font_pressed_color", "Button", Color("#101b22"))

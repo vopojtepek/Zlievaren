@@ -12,3 +12,7 @@ export_presets.cfg
 *.wasm
 *.html
 *.js
+
+# Generated visual checks and local diagnostic logs
+artifacts/
+*.log

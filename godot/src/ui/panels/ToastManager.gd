@@ -12,6 +12,7 @@ func _on_toast_requested(message: String, is_error: bool) -> void:
 		return
 	
 	var toast = PanelContainer.new()
+	toast.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var style = StyleBoxFlat.new()
 	style.set_corner_radius_all(6)
 	style.content_margin_left = 16
@@ -20,18 +21,20 @@ func _on_toast_requested(message: String, is_error: bool) -> void:
 	style.content_margin_bottom = 8
 	
 	if is_error:
-		style.bg_color = Color(0.65, 0.15, 0.15, 0.92)
-		style.border_color = Color(0.9, 0.3, 0.3, 1.0)
+		style.bg_color = Color("#f1d1b7")
+		style.border_color = Color("#f0d3b9")
 	else:
-		style.bg_color = Color(0.12, 0.28, 0.22, 0.92)
-		style.border_color = Color(0.3, 0.7, 0.45, 1.0)
+		style.bg_color = Color("#dbead2")
+		style.border_color = Color("#f0f9e3")
 	style.set_border_width_all(1)
 	toast.add_theme_stylebox_override("panel", style)
 	
 	var label = Label.new()
 	label.text = message
 	label.add_theme_font_size_override("font_size", 14)
-	label.add_theme_color_override("font_color", Color.WHITE)
+	label.add_theme_color_override("font_color", Color("#583326") if is_error else Color("#183828"))
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	toast.add_child(label)
 	
 	container.add_child(toast)

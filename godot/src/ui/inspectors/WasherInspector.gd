@@ -19,6 +19,7 @@ var wash_products = ["iron_pipe", "ring", "steel_pipe", "bronze_bushing"]
 
 func _ready() -> void:
 	EventBus.tick_processed.connect(_on_tick)
+	EventBus.pause_toggled.connect(func(_paused): _update_view())
 	btn_start.pressed.connect(_on_start_pressed)
 	check_auto.toggled.connect(_on_auto_toggled)
 	product_select.item_selected.connect(_on_product_selected)
@@ -33,7 +34,7 @@ func _populate_products() -> void:
 		var p = Constants.PRODUCTS[id]
 		var out_id = Constants.WASH.outputs[id]
 		var out_p = Constants.PRODUCTS[out_id]
-		product_select.add_item("%s → %s" % [p.short, out_p.name], i)
+		product_select.add_item(p.name, i)
 
 func _on_product_selected(index: int) -> void:
 	if index >= 0 and index < wash_products.size():
@@ -95,7 +96,7 @@ func _update_view() -> void:
 	input_stock_label.text = "Voľné odliatky v sklade: %d ks" % avail_in
 	output_stock_label.text = "Očistené výrobky v sklade: %d ks" % cur_out
 	
-	check_auto.button_pressed = w.auto
+	check_auto.set_pressed_no_signal(w.auto)
 	check_auto.disabled = SimulationClock.is_paused
 	
 	total_label.text = "Očistených celkom: %d ks" % w.cleaned

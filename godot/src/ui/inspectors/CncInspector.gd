@@ -7,6 +7,7 @@ extends PanelContainer
 
 func _ready() -> void:
 	EventBus.tick_processed.connect(_on_tick)
+	EventBus.pause_toggled.connect(func(_paused): _update_view())
 	_build_ui()
 	_update_view()
 
@@ -21,12 +22,14 @@ func _build_ui() -> void:
 		var name_lbl = Label.new()
 		name_lbl.name = "Name"
 		name_lbl.text = "AMADA" if i == 6 else "CNC %d" % (i + 1)
-		name_lbl.custom_minimum_size = Vector2(80, 0)
+		name_lbl.custom_minimum_size = Vector2(48, 0)
 		row.add_child(name_lbl)
 		
 		var status_lbl = Label.new()
 		status_lbl.name = "Status"
 		status_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		status_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		status_lbl.add_theme_font_size_override("font_size", 11)
 		row.add_child(status_lbl)
 		
 		var btn = Button.new()
@@ -74,7 +77,7 @@ func _update_view() -> void:
 		var power = state.cncPower[i]
 		
 		if is_amada:
-			status_lbl.text = "Zamknutá (pripravujeme)"
+			status_lbl.text = "Zamknutá"
 			status_lbl.modulate = Color(0.6, 0.6, 0.6)
 			btn.text = "Zamknuté"
 			btn.disabled = true

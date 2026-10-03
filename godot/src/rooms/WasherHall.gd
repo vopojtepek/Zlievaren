@@ -37,8 +37,7 @@ func _draw() -> void:
 	var night = 1.0 - daylight
 
 	# Background gradient
-	draw_rect(Rect2(0, 0, 1100, 690), Color8(53, 73, 78))
-	draw_rect(Rect2(0, 0, 1100, 193), Color8(36, 59, 75))
+	draw_gradient_rect(Rect2(0, 0, 1100, 690), PackedColorArray([Color("#243b4b"), Color("#324c58"), Color("#647172"), Color("#35494e")]), PackedFloat32Array([0, 0.28, 0.281, 1]))
 
 	# Wall columns and windows
 	for x in range(25, 1100, 180):
@@ -170,9 +169,9 @@ func _draw() -> void:
 
 	# High pressure water spray particles
 	if running and stage == "washing":
-		for i in range(24):
-			var q = fmod(time * 1.35 + float(i) * 0.618, 1.0)
-			var side = -1.0 if (i % 2 == 0) else 1.0
+		for i in range(86):
+			var q = fmod(t * 1.35 + float(i) * 0.618, 1.0)
+			var side = -1.0 if (i % 2 == 1) else 1.0
 			var sx = 380.0 if side < 0 else 707.0
 			var sy = 377.0 if side < 0 else 362.0
 			var v = 25.0 + float(i % 11) * 7.0
@@ -180,6 +179,11 @@ func _draw() -> void:
 			var py = sy - 28.0 * q + 120.0 * q * q + float(i % 5) * 3.0
 			var alpha = (1.0 - q) * 0.85
 			draw_line(Vector2(px, py), Vector2(px - side * 2.0, py - 3.0 - q * 4.0), Color(0.72, 0.95, 0.98, alpha), 1.3)
+			if i % 5 == 0:
+				draw_oval(Vector2(sx + side * v, 470 if side < 0 else 458), 3 + q * 10, 1 + q * 3, Color(0.59, 0.87, 0.92, (1 - q) * 0.4))
+		for i in range(13):
+			var q = fmod(t * 0.85 + float(i) / 13, 1.0)
+			draw_line(Vector2(397 + i * 13, 426), Vector2(397 + i * 13 + sin(i) * 3, 435 + q * 29), Color("#85cbd999"))
 
 	# Pallets with unwashed/clean products
 	draw_pallet_station(154, false, state, w)

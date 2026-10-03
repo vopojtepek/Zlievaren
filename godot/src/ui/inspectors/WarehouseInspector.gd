@@ -14,6 +14,7 @@ var current_bin: String = "iron"
 
 func _ready() -> void:
 	EventBus.tick_processed.connect(_on_tick)
+	EventBus.pause_toggled.connect(func(_paused): _update_view())
 	EventBus.bin_selected.connect(_on_bin_selected)
 	btn_stock_move.pressed.connect(_on_stock_move)
 	btn_upgrade.pressed.connect(_on_upgrade)

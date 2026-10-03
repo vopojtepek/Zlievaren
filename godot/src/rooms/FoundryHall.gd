@@ -36,6 +36,7 @@ func _input(event: InputEvent) -> void:
 			hover_slot = found
 			queue_redraw()
 	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		_input(InputEventMouseMotion.new())
 		if hover_slot >= 0:
 			var gm = get_node_or_null("/root/GameManager")
 			if gm != null:
@@ -52,12 +53,16 @@ func _draw() -> void:
 		draw_slot(state, POSITIONS[i], i)
 		draw_operator(state, POSITIONS[i], i)
 	draw_transport(state)
-	draw_foreman_patrol(state)
 	draw_ambient(state)
+	for i in range(POSITIONS.size()):
+		if state.machines[i] != null:
+			draw_external_steam(POSITIONS[i], state.machines[i], i, state)
+			draw_reject_sparks(POSITIONS[i], state.machines[i], i)
+	draw_foreman_patrol(state)
 
 func draw_foundry_bg(state: Dictionary) -> void:
 	# Main wall and floor background
-	draw_rect(Rect2(0, 0, 1100, 690), Color8(41, 61, 62))
+	draw_gradient_rect(Rect2(0, 0, 1100, 690), PackedColorArray([Color("#364846"), Color("#293d3e"), Color("#3b4b48"), Color("#263a3c")]), PackedFloat32Array([0, 0.27, 0.28, 1]))
 	var light_level: float = FoundryEngine.daylight(state)
 	var night: float = 1.0 - light_level
 
@@ -69,6 +74,8 @@ func draw_foundry_bg(state: Dictionary) -> void:
 		var sky_color = Color8(98, 142, 170).lerp(Color8(23, 35, 57), night)
 		draw_rect(Rect2(x + 5, 54, 160, 64), sky_color)
 		if night > 0.65:
+			for i in range(8):
+				draw_circle(Vector2(x + 12 + (i * 37) % 148, 57 + (i * 13) % 41), 0.8, Color("#e4eacb"))
 			draw_circle(Vector2(x + 119, 68), 6, Color8(224, 223, 191))
 		else:
 			var sun_y = 65.0 + abs(FoundryEngine.hour(state) - 12.0) * 3.0
@@ -131,7 +138,7 @@ func draw_stock(state: Dictionary) -> void:
 				])
 				draw_colored_polygon(pts, mat_col)
 		draw_rect(Rect2(x, 432, 27, 4), Color8(113, 131, 122))
-		draw_canvas_text(mat.short.to_upper(), Vector2(x + 13, 444), Color.html(mat.color), 8)
+		draw_canvas_text("Zn" if id == "zinc" else mat.short.substr(0, 2).to_upper(), Vector2(x + 13, 444), Color.html(mat.color), 8)
 		draw_canvas_text(str(n), Vector2(x + 13, 457), Color8(209, 221, 214), 10)
 
 	# Product stock rack on wall
@@ -159,6 +166,12 @@ func draw_stock(state: Dictionary) -> void:
 		j += 1
 
 	draw_canvas_text("VÝROBKY · " + str(FoundryEngine.used(state, "goods")) + " / " + str(FoundryEngine.capacity(state, "goods")) + " ks", Vector2(102, 548), Color8(180, 199, 189), 10)
+	for m in state.machines:
+		if m != null and m.state == "working" and m.elapsed < Constants.FLOW.spinup:
+			var y = 413 - 184 * m.elapsed / Constants.FLOW.spinup
+			draw_round_rect(Rect2(90, y - 8, 28, 16), Color("#a5b5a3"), 3)
+			draw_canvas_text("VSÁDZKA", Vector2(104, y), Color("#233a3e"), 6)
+			break
 
 func furnace_tilt(state: Dictionary) -> float:
 	var d = state.delivery
@@ -214,6 +227,27 @@ func draw_furnace(state: Dictionary) -> void:
 		var rel = (p - lid_center).rotated(tilt)
 		lid_rot_pts.append(lid_center + rel)
 	draw_colored_polygon(lid_rot_pts, Color8(109, 113, 96))
+	draw_set_transform(lid_center, tilt)
+	# Refractory cone and glowing opening, rotating with the furnace lid.
+	var cone_origin = Vector2(25, 86)
+	var cone = PackedVector2Array([Vector2(-27,-84),Vector2(-16,-101),Vector2(-8,-112),Vector2(24,-112),Vector2(32,-101),Vector2(44,-84),Vector2(28,-76),Vector2(-10,-76)])
+	for i in range(cone.size()):
+		cone[i] += cone_origin
+	draw_poly(cone, Color("#a29b80"), Color("#c5b692"))
+	draw_oval(cone_origin + Vector2(8,-111), 20, 8, Color("#544b3b"))
+	draw_oval(cone_origin + Vector2(8,-112), 16, 5.7, Color("#ff9b38"))
+	draw_oval(cone_origin + Vector2(8,-113), 11, 3.5, Color("#ffe094"))
+	draw_glow(cone_origin + Vector2(8,-111), 34, Color("#ffb44e"), 0.45 if pouring else 0.7)
+	if not pouring:
+		for i in range(3):
+			var a = fmod(time * 0.5 + float(i) / 3, 1)
+			draw_oval(cone_origin + Vector2(8 + sin(time + i) * 6, -123 - a * 34), 11 + a * 13, 4 + a * 4, Color(0.97, 0.8, 0.63, (1 - a) * 0.14))
+	var spout = PackedVector2Array([Vector2(23,-109),Vector2(35,-102),Vector2(40,-97),Vector2(32,-97),Vector2(17,-108)])
+	for i in range(spout.size()):
+		spout[i] += cone_origin
+	draw_poly(spout, Color("#a99976"))
+	draw_line(cone_origin + Vector2(24,-106), cone_origin + Vector2(36,-98), Color("#ffbd64"), 2)
+	draw_set_transform(Vector2.ZERO)
 
 	# Status text
 	draw_canvas_text("TAVENINA", Vector2(112, 344), Color8(187, 202, 184), 11)
@@ -271,7 +305,7 @@ func draw_slot(state: Dictionary, p: Vector2, index: int) -> void:
 	else:
 		draw_machine(p, m, index, selected or over, state)
 
-func draw_machine(p: Vector2, m: Dictionary, index: int, selected: bool, state: Dictionary) -> void:
+func draw_machine(p: Vector2, m: Dictionary, index: int, selected: bool, state: Dictionary, preview: bool = false) -> void:
 	var stage = FoundryEngine.stage(m)
 	var failed = (m.state == "failed")
 	var working = (m.state == "working" or failed)
@@ -406,6 +440,10 @@ func draw_machine(p: Vector2, m: Dictionary, index: int, selected: bool, state: 
 		draw_circle(p + rivet, 2, Color8(192, 199, 170))
 
 	# Status Tag Above Machine
+	if preview:
+		draw_external_steam(p, m, index, state)
+		draw_reject_sparks(p, m, index)
+		return
 	var tag_y = -195.0
 	draw_round_rect(Rect2(p.x - 66, p.y + tag_y - 11, 140, 23), Color8(120, 53, 35, 245) if failed else Color8(23, 45, 49, 237), 4)
 	draw_circle(p + Vector2(-54, tag_y), 3.5, Color8(255, 171, 99) if working else (Color8(190, 226, 145) if ready else Color8(143, 174, 158)))
@@ -421,10 +459,9 @@ func draw_machine(p: Vector2, m: Dictionary, index: int, selected: bool, state: 
 
 	draw_canvas_text(str(index + 1).pad_zeros(2) + " / " + product.code + " / MK " + ROMAN[m.level - 1] + (" · SÉRIA" if m.auto else ""), Vector2(p.x + 6, p.y + 44), Color8(215, 227, 194) if selected else Color8(166, 188, 169), 11, HORIZONTAL_ALIGNMENT_CENTER, true)
 
-	draw_external_steam(p, m, index, state)
-	draw_reject_sparks(p, m, index)
-
 func draw_cooling(p: Vector2, m: Dictionary, index: int) -> void:
+	draw_line(p + Vector2(-32,-120), p + Vector2(19,-120), Color("#354f59"), 4)
+	draw_line(p + Vector2(-32,-121), p + Vector2(19,-121), Color("#8caeb7"), 1.2)
 	if FoundryEngine.stage(m) != "cooling":
 		return
 	var clock = time + float(index) * 0.29
@@ -449,9 +486,21 @@ func draw_cooling(p: Vector2, m: Dictionary, index: int) -> void:
 				var d1 = Vector2(nx + (end_x - nx) * q, ny + (end_y - ny) * q)
 				var d2 = Vector2(nx + (end_x - nx) * pr, ny + (end_y - ny) * pr)
 				draw_line(d1, d2, Color8(215, 250, 255), 1.3)
+		for k in range(6):
+			var age = fmod(clock * 1.7 + float(k) / 6 + j * 0.21, 1)
+			var px = hit_x + side * (3 + (k % 3) * 2) * age
+			var py = hit_y - 5 * sin(age * PI) + 38 * age * age
+			draw_line(Vector2(px, py), Vector2(px - side * 0.6, py + 2.2), Color(0.6, 0.9, 1, (1 - age) * 0.78), 1.25)
+	var strength = 0.025 + clampf((FoundryEngine.temperature(m) - 180.0) / 1100, 0, 1) * 0.19
+	for i in range(7):
+		var age = fmod(clock * 0.58 + float(i) / 7, 1)
+		draw_oval(p + Vector2(-8 + sin(i * 2.3 + clock * 0.3) * 15, -91 - age * 30), 6 + age * 9, 4 + age * 6, Color(0.85, 0.95, 0.96, sin(age * PI) * strength))
 
 	# Runoff in drip tray
 	draw_oval(p + Vector2(-7, -39), 26, 2.5, Color(0.46, 0.79, 0.90, 0.36))
+	for i in range(3):
+		var phase = fmod(clock * 1.1 + float(i) / 3, 1)
+		draw_oval(p + Vector2(-22 + i * 16, -39), 1 + phase * 5, 0.6 + phase, Color.TRANSPARENT, Color(0.7, 0.93, 1, (1 - phase) * 0.42))
 
 func draw_external_steam(p: Vector2, m: Dictionary, index: int, state: Dictionary) -> void:
 	var cooling = (FoundryEngine.stage(m) == "cooling")
@@ -469,7 +518,9 @@ func draw_external_steam(p: Vector2, m: Dictionary, index: int, state: Dictionar
 		var px = p.x + 8.0 + sin(float(i) * 1.8 + time * 0.38) * age * 60.0 + age * 28.0
 		var py = p.y - 148.0 - age * (180.0 + heat * 75.0)
 		var alpha = sin(age * PI) * (0.27 + 0.11 * heat) * strength
-		draw_circle(Vector2(px, py), spread * 0.4, Color(0.90, 0.96, 0.96, alpha * 0.6))
+		draw_set_transform(Vector2(px, py), 0, Vector2(1, 0.68))
+		draw_glow(Vector2.ZERO, spread, Color("#e5f4f5"), alpha)
+		draw_set_transform(Vector2.ZERO)
 
 func draw_reject_sparks(p: Vector2, m: Dictionary, index: int) -> void:
 	if m.state != "failed":
@@ -480,15 +531,15 @@ func draw_reject_sparks(p: Vector2, m: Dictionary, index: int) -> void:
 	draw_glow(center, 105, Color8(255, 123, 36), 0.34 * fade)
 	draw_glow(center, 38, Color8(255, 210, 123), 0.5 * fade)
 
-	# 128 optimized ballistic sparks
-	for k in range(128):
-		var birth = float(k) / 45.0
-		var life = 1.1 + fmod(float(k) * 0.19, 0.55)
+	# Match the web's independently timed fragments and ballistic trails.
+	for k in range(720):
+		var birth = float(k) / 255.0
+		var life = 1.1 + spark_hash(k + 19, index) * 0.55
 		var t = age - birth
 		if t < 0.0 or t > life:
 			continue
-		var a = float(k) * 0.31 + birth * 8.0
-		var speed = 105.0 + fmod(float(k) * 17.0, 170.0)
+		var a = spark_hash(k + 2, index) * TAU + birth * 8.0
+		var speed = 105.0 + spark_hash(k + 5, index) * 170.0
 		var vx = cos(a) * speed
 		var vy = sin(a) * speed * 0.76 - 28.0
 		var sx = cos(a) * 19.0
@@ -498,7 +549,25 @@ func draw_reject_sparks(p: Vector2, m: Dictionary, index: int) -> void:
 		var q = t / life
 		var alpha = minf(1.0, t * 35.0) * (1.0 - q * 0.7) * fade
 		var spark_col = Color8(255, 245, 201, int(alpha * 255)) if q < 0.22 else (Color8(255, 194, 102, int(alpha * 255)) if q < 0.58 else Color8(255, 107, 46, int(alpha * 255)))
-		draw_circle(center + Vector2(px, py), 1.5, spark_col)
+		var tail = maxf(0, t - (0.015 + spark_hash(k + 3, index) * 0.018))
+		draw_line(center + Vector2(sx + vx * tail, sy + vy * tail + 94 * tail * tail), center + Vector2(px, py), spark_col, 0.65 + spark_hash(k + 8, index) * 1.15, true)
+		if k % 9 == 0:
+			draw_glow(center + Vector2(px, py), 3 + spark_hash(k + 10, index) * 2, Color("#ff9a46"), alpha * 0.22)
+	for k in range(12):
+		var t = age - k * 0.07
+		if t < 0 or t > 2.2:
+			continue
+		var dir = 1.0 if k % 2 else -1.0
+		var pos = center + Vector2(dir * (20 + t * (45 + spark_hash(k + 1, index) * 90)), -t * (65 + spark_hash(k + 7, index) * 60) + 78 * t * t)
+		var color = Color("#ffd48b") if t < 0.6 else Color("#b94e2c")
+		color.a = clampf(1 - t / 2.2, 0, 1) * fade
+		draw_set_transform(pos, t * (8 if k % 2 else -7))
+		draw_poly(PackedVector2Array([Vector2(-3,-1),Vector2(0,-3),Vector2(4,1),Vector2(1,3)]), color)
+		draw_set_transform(Vector2.ZERO)
+
+static func spark_hash(n: int, index: int) -> float:
+	var v = sin(n * 127.1 + index * 311.7) * 43758.5453
+	return v - floor(v)
 
 func draw_operator(state: Dictionary, p: Vector2, i: int) -> void:
 	var m = state.machines[i]
@@ -588,6 +657,9 @@ func draw_transport(state: Dictionary) -> void:
 	var fill: float = 0.0
 	var pouring: bool = false
 	var target_slot: int = 0
+	var crew_progress: float = 0.0
+	var walking: bool = false
+	var loading: bool = false
 
 	if d != null and d.slot >= 0 and d.slot < POSITIONS.size():
 		target_slot = d.slot
@@ -598,6 +670,8 @@ func draw_transport(state: Dictionary) -> void:
 			var rev_route = route.duplicate()
 			rev_route.reverse()
 			ladle_pos = point_on_route(rev_route, pr)
+			crew_progress = 1.0 - clampf(pr, 0, 1)
+			walking = true
 		elif m != null:
 			var el = float(m.elapsed)
 			if el < Constants.FLOW.spinup:
@@ -605,16 +679,35 @@ func draw_transport(state: Dictionary) -> void:
 			elif el < Constants.FLOW.loadEnd:
 				ladle_pos = HOME
 				fill = clampf((el - Constants.FLOW.spinup) / (Constants.FLOW.loadEnd - Constants.FLOW.spinup), 0.0, 1.0)
+				loading = true
 			elif el < Constants.FLOW.carryEnd:
 				var pr = (el - Constants.FLOW.loadEnd) / (Constants.FLOW.carryEnd - Constants.FLOW.loadEnd)
 				ladle_pos = point_on_route(route, pr)
 				fill = 1.0
+				crew_progress = clampf(pr, 0, 1)
+				walking = true
+				tilt = sin(time * 3.0) * 0.035
 			elif el < Constants.FLOW.pourEnd:
 				ladle_pos = route[-1]
 				var pr = (el - Constants.FLOW.carryEnd) / (Constants.FLOW.pourEnd - Constants.FLOW.carryEnd)
 				tilt = 0.86 * minf(clampf(pr / 0.18, 0.0, 1.0), clampf((1.0 - pr) / 0.13, 0.0, 1.0))
 				fill = 1.0 - clampf((pr - 0.1) / 0.82, 0.0, 1.0)
 				pouring = (pr > 0.1 and pr < 0.92)
+				crew_progress = 1.0
+			else:
+				ladle_pos = route[-1]
+				crew_progress = 1.0
+
+	var person = FoundryEngine.profile(FoundryEngine.employee(state, d.get("employeeId", ""))) if d != null else FoundryEngine.profile(FoundryEngine.duty(state, "ladle"))
+	if person != null:
+		var worker_pos = ladle_pos + Vector2(48.0 - 99.0 * crew_progress, 86.0 + 56.0 * crew_progress)
+		var facing = -1.0 if crew_progress < 0.5 else 1.0
+		var hand = worker_pos + Vector2(36 * facing, -46)
+		draw_line(ladle_pos + Vector2(27 - 54 * crew_progress, 2), hand, Color("#b4ab8a"), 3)
+		draw_worker(worker_pos, false, 1.0 if walking else 0.0, true, facing, person, time)
+		draw_circle(hand, 4, Color("#d8bf8e"))
+		draw_round_rect(Rect2(worker_pos + Vector2(-31, 13), Vector2(62, 17)), Color("#14292edd"), 4)
+		draw_canvas_text(person.name, worker_pos + Vector2(0, 22), Color("#d6ddd5"), 10)
 
 	# Overhead travelling hoist
 	draw_round_rect(Rect2(ladle_pos.x - 22, 28, 44, 15), Color8(165, 139, 81), 3)
@@ -628,17 +721,30 @@ func draw_transport(state: Dictionary) -> void:
 	draw_round_rect(Rect2(ladle_pos.x - 20, ladle_pos.y - 62, 40, 6), Color8(139, 150, 143), 2)
 	draw_line(Vector2(ladle_pos.x - 15, ladle_pos.y - 60), Vector2(ladle_pos.x + 15, ladle_pos.y - 60), Color8(195, 204, 196), 1)
 
-	# Ladle pot
-	var pot_origin = Vector2(ladle_pos.x, ladle_pos.y)
-	draw_round_rect(Rect2(pot_origin.x - 22, pot_origin.y - 15, 44, 38), Color8(130, 144, 135), 6)
+	# Rotate the vessel around its axle; the hoist and suspension stay upright.
+	var pot_origin = ladle_pos
+	draw_set_transform(pot_origin, tilt)
+	draw_poly(PackedVector2Array([Vector2(-27,-17), Vector2(27,-17), Vector2(20,21), Vector2(11,26), Vector2(-12,26), Vector2(-21,20)]), Color("#596c66"), Color("#b1b69b"))
+	draw_oval(Vector2(0,-17), 27, 10, Color("#c1b899"), Color("#586a5c"))
+	draw_oval(Vector2(0,-17), 22, 7, Color("#463f34"))
 	if fill > 0.0:
-		draw_circle(pot_origin, 12.0 * fill, Color8(255, 186, 89))
-		draw_glow(pot_origin, 35, Color8(255, 150, 50), 0.3 * fill)
+		draw_oval(Vector2(-2, -11 - 6 * fill), 21, 6 * fill, Color("#ffba59"))
+		draw_oval(Vector2(-4, -14 - 4 * fill), 15, 3 * fill, Color("#ffe19a"))
+	draw_line(Vector2(-20,-6), Vector2(-16,17), Color("#b2b496"), 2)
+	draw_line(Vector2(-16,20), Vector2(16,20), Color("#2e4945"), 3)
+	draw_poly(PackedVector2Array([Vector2(21,-22),Vector2(33,-20),Vector2(34,-13),Vector2(24,-10)]), Color("#b7ac86"), Color("#5e725f"))
+	draw_circle(Vector2(-29,0), 4, Color("#d2caab"))
+	draw_circle(Vector2(29,0), 4, Color("#d2caab"))
+	draw_set_transform(Vector2.ZERO)
+	if loading:
+		var angle = furnace_tilt(state)
+		var spout = Vector2(73,234) + Vector2(61,-12).rotated(angle)
+		draw_stream(spout, pot_origin + Vector2(-4,-18), 4, time)
 
 	# Molten metal pour stream
 	if pouring:
 		var target_p = POSITIONS[target_slot]
-		draw_stream(pot_origin + Vector2(15, 10), Vector2(target_p.x - 7, target_p.y - 82), 5.0, time)
+		draw_stream(pot_origin + Vector2(34, -16).rotated(tilt), Vector2(target_p.x - 7, target_p.y - 82), 5.0, time)
 
 func draw_foreman_patrol(state: Dictionary) -> void:
 	var master = FoundryEngine.profile(FoundryEngine.duty(state, "foreman"))
@@ -660,3 +766,15 @@ func draw_ambient(state: Dictionary) -> void:
 		for x in [365.0, 620.0, 875.0]:
 			draw_glow(Vector2(x, 55), 53, Color8(255, 207, 138), night * 0.3)
 	draw_glow(Vector2(106, 211), 75, Color8(255, 151, 55), 0.14 + night * 0.18)
+	var elapsed = state.clock - state.shiftChangedAt
+	if state.shiftChanges > 0 and elapsed >= 0 and elapsed < 8:
+		var progress = clampf(elapsed / 8, 0, 1)
+		var old_busy = state.delivery != null and state.delivery.crew == state.previousShift
+		var outgoing = FoundryEngine.profile(FoundryEngine.assigned(state, FoundryEngine.position_key("ladle", state.previousShift)))
+		var incoming = FoundryEngine.profile(FoundryEngine.duty(state, "ladle"))
+		if not old_busy and outgoing != null:
+			draw_worker(Vector2(985 + 145 * progress, 651), true, 1, false, 1, outgoing, time)
+		if incoming != null:
+			draw_worker(Vector2(1090 - 136 * progress, 628), true, 1, false, -1, incoming, time)
+		draw_round_rect(Rect2(838, 666, 235, 18), Color("#11262ee8"), 4)
+		draw_canvas_text(incoming.name + " preberá smenu" if incoming != null else "PANVÁR CHÝBA · KANCELÁRIA", Vector2(955, 676), Color("#dfd6b4"), 10)

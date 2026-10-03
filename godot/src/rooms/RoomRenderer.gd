@@ -5,6 +5,23 @@ const FONT_REGULAR = preload("res://assets/fonts/DMSans.ttf")
 const FONT_BOLD = preload("res://assets/fonts/BarlowCondensed-Bold.ttf")
 
 var current_state: Dictionary = {}
+static var glow_texture: GradientTexture2D
+static var gradients: Dictionary = {}
+
+func draw_gradient_rect(rect: Rect2, colors: PackedColorArray, stops: PackedFloat32Array) -> void:
+	var key = str(colors) + str(stops)
+	if not gradients.has(key):
+		var gradient = Gradient.new()
+		gradient.colors = colors
+		gradient.offsets = stops
+		var texture = GradientTexture2D.new()
+		texture.gradient = gradient
+		texture.width = 4
+		texture.height = 512
+		texture.fill_from = Vector2.ZERO
+		texture.fill_to = Vector2(0, 1)
+		gradients[key] = texture
+	draw_texture_rect(gradients[key], rect, false)
 
 func get_room_state() -> Dictionary:
 	if not current_state.is_empty():
@@ -93,11 +110,19 @@ func draw_canvas_text(str_val: String, pos: Vector2, color: Color = Color8(198, 
 func draw_glow(pos: Vector2, radius: float, color: Color, alpha: float = 1.0) -> void:
 	if alpha <= 0.0:
 		return
+	if glow_texture == null:
+		var gradient = Gradient.new()
+		gradient.colors = PackedColorArray([Color.WHITE, Color(1, 1, 1, 0)])
+		glow_texture = GradientTexture2D.new()
+		glow_texture.gradient = gradient
+		glow_texture.width = 128
+		glow_texture.height = 128
+		glow_texture.fill = GradientTexture2D.FILL_RADIAL
+		glow_texture.fill_from = Vector2(0.5, 0.5)
+		glow_texture.fill_to = Vector2(1, 0.5)
 	var c = color
-	c.a = alpha * 0.4
-	draw_circle(pos, radius, c)
-	c.a = alpha * 0.15
-	draw_circle(pos, radius * 1.5, c)
+	c.a = alpha
+	draw_texture_rect(glow_texture, Rect2(pos - Vector2.ONE * radius, Vector2.ONE * radius * 2), false, c)
 
 func draw_pipe(x: float, y: float, w: float, h: float) -> void:
 	draw_round_rect(Rect2(x + 4, y + 5, w, h), Color8(21, 35, 39), 4)

@@ -12,7 +12,7 @@ extends PanelContainer
 @onready var market_ticker: Label = $VBox/Content/MarketPanel/TickerLabel
 @onready var market_items_list: VBoxContainer = $VBox/Content/MarketPanel/Scroll/ItemsList
 
-@onready var contracts_list: VBoxContainer = $VBox/Content/ContractsPanel/Scroll/ContractsList
+@onready var contracts_list: GridContainer = $VBox/Content/ContractsPanel/Scroll/ContractsList
 @onready var companies_list: HBoxContainer = $VBox/Content/ContractsPanel/CompaniesList
 
 @onready var ledger_list: VBoxContainer = $VBox/Content/LedgerPanel/Scroll/LedgerList
@@ -22,6 +22,11 @@ var current_state: Dictionary = {}
 var _last_market_key: String = ""
 var _last_contracts_key: String = ""
 var _last_ledger_key: String = ""
+var extra_buttons: Dictionary = {}
+var stock_panel: HBoxContainer
+var development_panel: HBoxContainer
+var _last_extra_key: String = ""
+var web_market: HBoxContainer
 
 func _get_state() -> Dictionary:
 	if not current_state.is_empty():
@@ -54,6 +59,45 @@ func _connect_signals() -> void:
 			eb.pause_toggled.connect(_on_pause_toggled)
 
 func _ready() -> void:
+	for c in market_panel.get_children():
+		c.hide()
+	web_market = preload("res://src/ui/panels/WebMarket.gd").new()
+	market_panel.add_child(web_market)
+	custom_minimum_size = Vector2(0, 430)
+	add_theme_stylebox_override("panel", preload("res://src/ui/WebLayout.gd").panel_style("#162831", 22))
+	stock_panel = HBoxContainer.new()
+	stock_panel.add_theme_constant_override("separation", 24)
+	$VBox/Content.add_child(stock_panel)
+	development_panel = HBoxContainer.new()
+	development_panel.add_theme_constant_override("separation", 16)
+	$VBox/Content.add_child(development_panel)
+	for entry in [["stock", "Sklady"], ["development", "Rozvoj"], ["office", "Kancelária"]]:
+		var id: String = entry[0]
+		var b = Button.new()
+		b.text = entry[1]
+		b.toggle_mode = true
+		$VBox/Header/Tabs.add_child(b)
+		b.pressed.connect(func():
+			if id == "office":
+				GameManager.change_room("office")
+			else:
+				_switch_tab(id)
+		)
+		extra_buttons[id] = b
+	$VBox/Header/Tabs.move_child(extra_buttons.stock, 0)
+	$VBox/Header/Tabs.move_child(btn_ledger, $VBox/Header/Tabs.get_child_count() - 1)
+	btn_market.text = "Burza"
+	for b in $VBox/Header/Tabs.get_children():
+		b.custom_minimum_size.y = 52
+		var normal = StyleBoxFlat.new()
+		normal.bg_color = Color("#1b2f38")
+		normal.set_content_margin_all(10)
+		var selected = normal.duplicate()
+		selected.border_width_bottom = 2
+		selected.border_color = Color("#ffa75f")
+		b.add_theme_stylebox_override("normal", normal)
+		b.add_theme_stylebox_override("pressed", selected)
+		b.add_theme_color_override("font_pressed_color", Color("#fff0df"))
 	_connect_signals()
 	visibility_changed.connect(_on_visibility_changed)
 	
@@ -61,7 +105,7 @@ func _ready() -> void:
 	btn_contracts.pressed.connect(func(): _switch_tab("contracts"))
 	btn_ledger.pressed.connect(func(): _switch_tab("ledger"))
 	
-	_switch_tab("market")
+	_switch_tab("stock")
 	_update_view(true)
 
 func _on_visibility_changed() -> void:
@@ -82,6 +126,10 @@ func _switch_tab(tab_name: String) -> void:
 	market_panel.visible = (current_tab == "market")
 	contracts_panel.visible = (current_tab == "contracts")
 	ledger_panel.visible = (current_tab == "ledger")
+	stock_panel.visible = current_tab == "stock"
+	development_panel.visible = current_tab == "development"
+	for id in extra_buttons:
+		extra_buttons[id].set_pressed_no_signal(id == current_tab)
 	_update_view(true)
 
 func _on_tick(_state: Dictionary, _delta: float) -> void:
@@ -95,11 +143,79 @@ func _update_view(force: bool = false) -> void:
 		return
 		
 	if current_tab == "market":
-		_update_market(state, force)
+		web_market.refresh(state)
 	elif current_tab == "contracts":
 		_update_contracts(state, force)
 	elif current_tab == "ledger":
 		_update_ledger(state, force)
+	elif current_tab in ["stock", "development"]:
+		_update_extra(state, force)
+
+func _extra_label(parent: Node, text: String, font_size: int = 13) -> Label:
+	var l = Label.new()
+	l.text = text
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.add_theme_font_size_override("font_size", font_size)
+	parent.add_child(l)
+	return l
+
+func _extra_card(parent: Node, title: String) -> VBoxContainer:
+	var card = PanelContainer.new()
+	card.size_flags_horizontal = SIZE_EXPAND_FILL
+	card.add_theme_stylebox_override("panel", preload("res://src/ui/WebLayout.gd").panel_style("#1b303a", 17))
+	parent.add_child(card)
+	var box = VBoxContainer.new()
+	box.add_theme_constant_override("separation", 12)
+	card.add_child(box)
+	var heading = _extra_label(box, title, 25)
+	heading.add_theme_font_override("font", preload("res://assets/fonts/BarlowCondensed-SemiBold.ttf"))
+	return box
+
+func _extra_action(parent: Node, title: String, command: Dictionary, disabled: bool = false) -> void:
+	var b = Button.new()
+	b.text = title
+	b.disabled = _is_paused() or disabled
+	b.pressed.connect(func():
+		_execute(command)
+		_update_view(true)
+	)
+	parent.add_child(b)
+
+func _update_extra(s: Dictionary, force: bool) -> void:
+	var key = "%s:%d:%s:%s:%s" % [current_tab, s.revision, s.raw.hash(), s.goods.hash(), _is_paused()]
+	if key == _last_extra_key and not force:
+		return
+	_last_extra_key = key
+	var panel = stock_panel if current_tab == "stock" else development_panel
+	for c in panel.get_children():
+		panel.remove_child(c)
+		c.queue_free()
+	if current_tab == "stock":
+		var raw = _extra_card(panel, "Suroviny na vsádzku")
+		_extra_label(raw, "%d / %d kg · dodávky na rampe %d kg" % [FoundryEngine.used(s, "raw"), FoundryEngine.capacity(s, "raw"), FoundryEngine.used(s, "incoming")])
+		for id in Constants.MATERIALS:
+			_extra_label(raw, "%s       %d / %d kg" % [Constants.MATERIALS[id].name, s.raw[id], FoundryEngine.bin_capacity(s, id)])
+			if s.incoming[id] > 0:
+				_extra_action(raw, "Uskladniť %d kg →" % s.incoming[id], {"type": "store", "material": id, "quantity": s.incoming[id]})
+		var goods = _extra_card(panel, "Odliatky a očistené výrobky")
+		_extra_label(goods, "%d / %d ks" % [FoundryEngine.used(s, "goods"), FoundryEngine.capacity(s, "goods")])
+		for id in Constants.BASE_PRODUCTS:
+			var clean: String = Constants.WASH.outputs[id]
+			_extra_label(goods, "%s\n%d odliatkov · %d očistených" % [Constants.BASE_PRODUCTS[id].name, s.goods[id], s.goods[clean]])
+		_extra_action(goods, "Zväčšiť sklad výrobkov", {"type": "expand", "kind": "goods"})
+	else:
+		for id in Constants.BASE_PRODUCTS:
+			var p = Constants.BASE_PRODUCTS[id]
+			var card = _extra_card(panel, p.name)
+			_extra_label(card, p.description)
+			_extra_label(card, "%s\nCyklus %d s" % [p.size, p.seconds])
+			var unlocked = s.unlocked.has(id)
+			_extra_action(card, "Odomknuté" if unlocked else "Odomknúť · %d ₵" % p.unlock, {"type": "unlock", "product": id}, unlocked or s.money < p.unlock)
+		var upgrades = _extra_card(panel, "Rozvoj závodu")
+		_extra_label(upgrades, "Rýchlejší záves skracuje prepravu panvy. Väčšie sklady dávajú priestor ďalšej výrobe.")
+		_extra_action(upgrades, "Záves · %d ₵" % (420 * (s.logistics + 1)), {"type": "logistics"}, s.logistics >= 2)
+		_extra_action(upgrades, "Zväčšiť rampu", {"type": "expand", "kind": "raw"})
+		_extra_action(upgrades, "Zväčšiť sklad", {"type": "expand", "kind": "goods"})
 
 func _update_market(state: Dictionary, force: bool = false) -> void:
 	var ev = FoundryEngine.event(state)
@@ -275,15 +391,17 @@ func _update_contracts(state: Dictionary, force: bool = false) -> void:
 	else:
 		for c in active_or_offers:
 			var card = PanelContainer.new()
+			card.size_flags_horizontal = SIZE_EXPAND_FILL
 			card.mouse_filter = Control.MOUSE_FILTER_PASS
 			var style = StyleBoxFlat.new()
 			style.bg_color = Color(0.14, 0.20, 0.22, 0.95)
 			style.border_color = Color(0.3, 0.45, 0.5, 1.0)
 			style.set_border_width_all(1)
 			style.set_corner_radius_all(6)
+			style.set_content_margin_all(19)
 			card.add_theme_stylebox_override("panel", style)
 			
-			var hbox = HBoxContainer.new()
+			var hbox = VBoxContainer.new()
 			hbox.add_theme_constant_override("separation", 16)
 			
 			var contract_icon = TextureRect.new()
@@ -300,6 +418,7 @@ func _update_contracts(state: Dictionary, force: bool = false) -> void:
 			
 			var buyer_lbl = Label.new()
 			buyer_lbl.text = "%s · %s" % [c.buyer, "PONUKA" if c.status == "offer" else "AKTÍVNA ZÁKAZKA"]
+			buyer_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 			buyer_lbl.modulate = Color(0.957, 0.808, 0.533, 1)
 			vbox.add_child(buyer_lbl)
 			
@@ -308,10 +427,15 @@ func _update_contracts(state: Dictionary, force: bool = false) -> void:
 			var avail = FoundryEngine.available(state, c.product)
 			var desc_lbl = Label.new()
 			desc_lbl.text = "Požiadavka: %d ks %s (na sklade máš %d ks)" % [c.quantity, prod_name, avail]
+			desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			desc_lbl.add_theme_font_override("font", preload("res://assets/fonts/BarlowCondensed-SemiBold.ttf"))
+			desc_lbl.add_theme_font_size_override("font_size", 24)
 			vbox.add_child(desc_lbl)
 			
-			var time_left = maxf(0.0, c.deadline - state.clock)
+			var deadline = c.offerDeadline if c.status == "offer" else c.deadline
+			var time_left = maxf(0.0, float(deadline) - state.clock)
 			var time_lbl = Label.new()
+			time_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 			if c.status == "offer":
 				time_lbl.text = "Platnosť ponuky: %d s · Odmena: %s" % [int(ceil(time_left)), Format.cash(c.payout)]
 			else:

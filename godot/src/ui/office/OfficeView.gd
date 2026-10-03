@@ -265,10 +265,11 @@ func _update_overview_tab(active_employees: Array, force: bool = false) -> void:
 			var card = PanelContainer.new()
 			card.mouse_filter = Control.MOUSE_FILTER_PASS
 			var style = StyleBoxFlat.new()
-			style.bg_color = Color(0.25, 0.15, 0.15, 0.9)
-			style.border_color = Color(0.8, 0.3, 0.3, 1.0)
+			style.bg_color = Color("#3c3631")
+			style.border_color = Color("#b17e5c")
 			style.set_border_width_all(1)
-			style.set_corner_radius_all(4)
+			style.set_corner_radius_all(9)
+			style.set_content_margin_all(18)
 			card.add_theme_stylebox_override("panel", style)
 			
 			var card_box = HBoxContainer.new()
@@ -326,10 +327,11 @@ func _update_overview_tab(active_employees: Array, force: bool = false) -> void:
 		var card = PanelContainer.new()
 		card.mouse_filter = Control.MOUSE_FILTER_PASS
 		var style = StyleBoxFlat.new()
-		style.bg_color = Color(0.12, 0.18, 0.20, 0.95)
+		style.bg_color = Color("#1f3742")
 		style.border_color = Color(0.25, 0.38, 0.40, 1.0)
 		style.set_border_width_all(1)
-		style.set_corner_radius_all(6)
+		style.set_corner_radius_all(10)
+		style.set_content_margin_all(20)
 		card.custom_minimum_size = Vector2(280, 180)
 		card.add_theme_stylebox_override("panel", style)
 		
@@ -466,7 +468,8 @@ func _update_hire_tab(force: bool = false) -> void:
 				style.bg_color = Color(0.14, 0.20, 0.22, 0.95)
 				style.border_color = Color(0.3, 0.45, 0.5, 1.0)
 				style.set_border_width_all(1)
-				style.set_corner_radius_all(4)
+				style.set_corner_radius_all(9)
+				style.set_content_margin_all(18)
 				c_card.add_theme_stylebox_override("panel", style)
 				
 				var cvbox = VBoxContainer.new()
@@ -572,7 +575,8 @@ func _update_payroll_tab(force: bool = false) -> void:
 			style.bg_color = Color(0.12, 0.16, 0.18, 0.9)
 			style.border_color = Color(0.2, 0.3, 0.35, 1.0)
 			style.set_border_width_all(1)
-			style.set_corner_radius_all(4)
+			style.set_corner_radius_all(9)
+			style.set_content_margin_all(18)
 			hist_card.add_theme_stylebox_override("panel", style)
 			
 			var hvbox = VBoxContainer.new()

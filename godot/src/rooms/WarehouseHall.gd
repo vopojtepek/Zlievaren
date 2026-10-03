@@ -35,6 +35,7 @@ func _input(event: InputEvent) -> void:
 			hover_bin = found
 			queue_redraw()
 	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		_input(InputEventMouseMotion.new())
 		if hover_bin >= 0:
 			var gm = get_node_or_null("/root/GameManager")
 			if gm != null:
@@ -49,8 +50,7 @@ func _draw() -> void:
 	var night = 1.0 - daylight
 
 	# Background gradient
-	draw_rect(Rect2(0, 0, 1100, 690), Color8(44, 65, 70))
-	draw_rect(Rect2(0, 0, 1100, 185), Color8(53, 71, 83))
+	draw_gradient_rect(Rect2(0, 0, 1100, 690), PackedColorArray([Color("#354753"), Color("#263d47"), Color("#53615e"), Color("#2c4146")]), PackedFloat32Array([0, 0.26, 0.27, 1]))
 
 	# Wall columns and windows
 	for x in range(0, 1100, 138):

@@ -32,6 +32,9 @@ func _ready() -> void:
 		GameManager.new_game()
 		
 	_on_room_changed(GameManager.current_room)
+	var layout = preload("res://src/ui/WebLayout.gd").new()
+	$UI.add_child(layout)
+	layout.build(self)
 
 func _on_room_changed(room_name: String) -> void:
 	var is_office = (room_name == "office")

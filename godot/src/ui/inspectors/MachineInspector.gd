@@ -32,9 +32,42 @@ extends PanelContainer
 
 var slot: int = 0
 var available_product_ids: Array = ["iron_pipe", "ring", "steel_pipe", "bronze_bushing"]
+var machine_tabs: Array[Button] = []
 
 func _ready() -> void:
+	var tabs = HBoxContainer.new()
+	$VBox.add_child(tabs)
+	$VBox.move_child(tabs, 0)
+	for i in range(Constants.SLOTS):
+		var b = Button.new()
+		b.text = str(i + 1)
+		b.toggle_mode = true
+		b.size_flags_horizontal = SIZE_EXPAND_FILL
+		b.custom_minimum_size.y = 32
+		var selected_style = StyleBoxFlat.new()
+		selected_style.bg_color = Color("#c0d6c5")
+		selected_style.set_corner_radius_all(4)
+		selected_style.set_content_margin_all(6)
+		b.add_theme_stylebox_override("pressed", selected_style)
+		b.add_theme_color_override("font_pressed_color", Color("#183c32"))
+		b.pressed.connect(func(): GameManager.select_machine(i))
+		tabs.add_child(b)
+		machine_tabs.append(b)
+	var preview = Control.new()
+	preview.custom_minimum_size.y = 185
+	preview.clip_contents = true
+	preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	$VBox.add_child(preview)
+	$VBox.move_child(preview, 2)
+	var drawing = preload("res://src/ui/inspectors/MachinePreview.gd").new()
+	preview.add_child(drawing)
+	preview.resized.connect(func(): drawing.position.x = (preview.size.x - 320.0) / 2.0)
+	title_label.add_theme_font_override("font", preload("res://assets/fonts/BarlowCondensed-SemiBold.ttf"))
+	title_label.add_theme_font_size_override("font_size", 28)
+	product_select.fit_to_longest_item = false
+	operator_name.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	EventBus.tick_processed.connect(_on_tick)
+	EventBus.pause_toggled.connect(func(_paused): _update_view())
 	EventBus.machine_selected.connect(_on_machine_selected)
 	
 	btn_goto_office.pressed.connect(func(): GameManager.change_room("office"))
@@ -97,6 +130,8 @@ func _update_view() -> void:
 		return
 	
 	title_label.text = "Stanovište %02d" % (slot + 1)
+	for i in range(machine_tabs.size()):
+		machine_tabs[i].set_pressed_no_signal(i == slot)
 	var m = state.machines[slot]
 	
 	if m == null:
@@ -181,7 +216,7 @@ func _update_view() -> void:
 		cycle_bar.value = 0.0
 		
 	# Action buttons
-	check_auto.button_pressed = m.auto
+	check_auto.set_pressed_no_signal(m.auto)
 	check_auto.disabled = SimulationClock.is_paused
 	
 	var can_cast_reason = FoundryEngine.can_cast(state, slot) if m.state == "idle" else ""

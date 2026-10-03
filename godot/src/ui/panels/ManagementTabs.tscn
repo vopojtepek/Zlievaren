@@ -82,10 +82,11 @@ theme_override_constants/separation = 8
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="ContractsList" type="VBoxContainer" parent="VBox/Content/ContractsPanel/Scroll"]
+[node name="ContractsList" type="GridContainer" parent="VBox/Content/ContractsPanel/Scroll"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 8
+columns = 3
 
 [node name="CompaniesList" type="HBoxContainer" parent="VBox/Content/ContractsPanel"]
 layout_mode = 2

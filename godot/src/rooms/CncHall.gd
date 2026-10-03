@@ -37,6 +37,7 @@ func _input(event: InputEvent) -> void:
 			hover_cnc = found
 			queue_redraw()
 	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		_input(InputEventMouseMotion.new())
 		if hover_cnc >= 0:
 			var gm = get_node_or_null("/root/GameManager")
 			if gm != null:
@@ -55,8 +56,7 @@ func _draw() -> void:
 	var night = 1.0 - daylight
 
 	# Background gradient
-	draw_rect(Rect2(0, 0, 1100, 690), Color8(55, 77, 73))
-	draw_rect(Rect2(0, 0, 1100, 110), Color8(63, 84, 82))
+	draw_gradient_rect(Rect2(0, 0, 1100, 690), PackedColorArray([Color("#3f5452"), Color("#344b4a"), Color("#596961"), Color("#374d49")]), PackedFloat32Array([0, 0.16, 0.161, 1]))
 
 	# Wall columns and high windows
 	for x in range(25, 1100, 180):
