@@ -33,24 +33,25 @@ func capture() -> void:
 	await shot("layout-foundry")
 	check(layout.page.size.x <= root.size.x, "1440px page fits viewport")
 	check(absf(layout.scene.size.x / layout.scene.size.y - 1100.0 / 690.0) < 0.01, "Hall aspect ratio is preserved")
-	check(main.machine_inspector.size.x <= 346, "Inspector matches web sidebar width")
+	check(not layout.sidebar.visible and not main.management_tabs.visible, "Foundry has no sidebar or management tabs")
 	for room in ["warehouse", "washer", "cnc", "office"]:
 		gm.change_room(room)
 		await shot("layout-" + room)
 		check(layout.sidebar.size.x <= 346 or room == "office", "Sidebar width stays consistent in " + room)
 		check(main.office_view.visible == (room == "office"), "Office visibility matches navigation")
-	gm.change_room("foundry")
+	gm.change_room("warehouse")
 	for tab in ["stock", "market", "contracts", "development"]:
 		main.management_tabs._switch_tab(tab)
 		await settle()
 		layout.scroll.scroll_vertical = 2000
 		await shot("panel-" + tab)
 	layout.scroll.scroll_vertical = 0
+	gm.change_room("foundry")
 	for width in [1920, 1280, 1024, 800]:
 		root.size = Vector2i(width, 1000)
 		await shot("layout-%d" % width)
 		check(layout.page.size.x <= width, "%dpx page fits viewport" % width)
-		check(layout.sidebar.get_global_rect().end.x <= width, "%dpx sidebar fits viewport" % width)
+		check(layout.workshop.get_global_rect().end.x <= width, "%dpx workshop fits viewport" % width)
 	root.size = Vector2i(1440, 1000)
 	gm.state = Fixtures.fresh()
 	var s: Dictionary = gm.state

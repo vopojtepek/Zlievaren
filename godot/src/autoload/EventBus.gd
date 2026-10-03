@@ -34,6 +34,7 @@ signal contract_expired(contract_id: String)
 # Signály navigácie a používateľského rozhrania
 signal room_change_requested(room_name: String)
 signal machine_selected(slot: int)
+signal machine_inspector_requested(slot: int)
 signal bin_selected(bin_id: String)
 signal toast_requested(message: String, is_error: bool)
 signal pause_toggled(is_paused: bool)

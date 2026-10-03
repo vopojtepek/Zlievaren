@@ -41,6 +41,9 @@ func _input(event: InputEvent) -> void:
 			var gm = get_node_or_null("/root/GameManager")
 			if gm != null:
 				gm.select_machine(hover_slot)
+				var eb = get_node_or_null("/root/EventBus")
+				if eb != null:
+					eb.machine_inspector_requested.emit(hover_slot)
 
 func _draw() -> void:
 	var state = get_room_state()

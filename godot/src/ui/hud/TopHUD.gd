@@ -9,6 +9,7 @@ var clock_label: Label
 var revenue_label: Label
 var btn_pause: Button
 var day_track: ProgressBar
+var machine_modal_open: bool = false
 
 func _label(parent: Node, text: String, font_size: int, color: String = "#e8f0ed") -> Label:
 	var l = Label.new()
@@ -90,6 +91,8 @@ func _ready() -> void:
 	_on_tick(GameManager.state, 0)
 
 func _unhandled_key_input(event: InputEvent) -> void:
+	if machine_modal_open:
+		return
 	if not event is InputEventKey or not event.pressed or event.echo:
 		return
 	var focus = get_viewport().gui_get_focus_owner()
@@ -97,6 +100,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		return
 	if event.keycode >= KEY_1 and event.keycode <= KEY_6:
 		GameManager.select_machine(event.keycode - KEY_1)
+		if GameManager.current_room == "foundry":
+			EventBus.machine_inspector_requested.emit(event.keycode - KEY_1)
 	elif event.keycode == KEY_P:
 		_on_pause_pressed()
 	elif event.keycode == KEY_SPACE and GameManager.current_room == "foundry":

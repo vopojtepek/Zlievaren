@@ -25,6 +25,7 @@ var alert: Button
 var office: Control
 var scene_info: VBoxContainer
 var area_switch: Button
+var machine_modal: Control
 
 static func panel_style(color: String = "#1f333b", padding: float = 20.0) -> StyleBoxFlat:
 	var s = StyleBoxFlat.new()
@@ -213,10 +214,15 @@ func build(root: Node) -> void:
 	sidebar = VBoxContainer.new()
 	sidebar.custom_minimum_size.x = 345
 	columns.add_child(sidebar)
-	for inspector in [main.machine_inspector, main.warehouse_inspector, main.washer_inspector, main.cnc_inspector]:
+	for inspector in [main.warehouse_inspector, main.washer_inspector, main.cnc_inspector]:
 		adopt(inspector, sidebar)
 		inspector.add_theme_stylebox_override("panel", panel_style("#1f333b", 23))
 		_wrap_labels(inspector)
+	machine_modal = preload("res://src/ui/inspectors/MachineModal.gd").new()
+	add_child(machine_modal)
+	machine_modal.build(main.machine_inspector, main.top_hud)
+	main.machine_inspector.add_theme_stylebox_override("panel", panel_style("#1f333b", 23))
+	_wrap_labels(main.machine_inspector)
 	for b in [main.machine_inspector.btn_action, main.machine_inspector.btn_buy_machine, main.washer_inspector.btn_start, main.warehouse_inspector.btn_stock_move]:
 		b.add_theme_stylebox_override("normal", panel_style("#ffa75f", 10))
 		b.add_theme_color_override("font_color", Color("#272b25"))
@@ -267,8 +273,8 @@ func _room_changed(id: String) -> void:
 		nav_buttons[key].set_pressed_no_signal(key == id)
 	scene.visible = id != "office"
 	scene_info.visible = id != "office"
-	sidebar.visible = id != "office"
-	main.management_tabs.visible = true
+	sidebar.visible = id != "office" and id != "foundry"
+	main.management_tabs.visible = id != "foundry"
 	main.inspectors_container.hide()
 	_resize_scene.call_deferred()
 	area_switch.text = "TAVIAREŇ → SKLAD" if id == "foundry" else "← TAVIAREŇ"

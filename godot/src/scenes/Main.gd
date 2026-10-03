@@ -41,7 +41,6 @@ func _on_room_changed(room_name: String) -> void:
 	office_view.visible = is_office
 	room_container.visible = not is_office
 	inspectors_container.visible = not is_office
-	management_tabs.visible = not is_office
 	
 	if not is_office:
 		foundry_hall.visible = (room_name == "foundry")
@@ -49,7 +48,6 @@ func _on_room_changed(room_name: String) -> void:
 		washer_hall.visible = (room_name == "washer")
 		cnc_hall.visible = (room_name == "cnc")
 		
-		machine_inspector.visible = (room_name == "foundry")
 		warehouse_inspector.visible = (room_name == "warehouse")
 		washer_inspector.visible = (room_name == "washer")
 		cnc_inspector.visible = (room_name == "cnc")
