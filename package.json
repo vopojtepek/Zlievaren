@@ -1,0 +1,23 @@
+{
+  "name": "zerava-zlievaren",
+  "version": "0.21.0",
+  "description": "Žeravá zlievareň — výroba, sklady a burza",
+  "main": "serve.cjs",
+  "scripts": {
+    "start": "node serve.cjs",
+    "test": "node scripts/test.cjs",
+    "bundle": "node scripts/bundle.cjs",
+    "bundle:check": "node scripts/bundle.cjs --check",
+    "verify": "npm test && npm run bundle:check",
+    "assets": "node scripts/generate_assets.cjs && node scripts/generate_character_assets.cjs",
+    "test:godot": "C:\\Users\\stefa\\tools\\godot\\Godot_v4.7.2-stable_win64_console.exe --headless --path godot --script res://tests/RunTests.gd"
+  },
+  "keywords": [
+    "foundry",
+    "simulation",
+    "canvas",
+    "game"
+  ],
+  "author": "",
+  "license": "UNLICENSED"
+}

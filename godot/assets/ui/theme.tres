@@ -1,0 +1,169 @@
+[gd_resource type="Theme" format=3]
+
+[ext_resource type="FontFile" path="res://assets/fonts/BarlowCondensed-SemiBold.ttf" id="1_fenpc"]
+[ext_resource type="FontFile" path="res://assets/fonts/BarlowCondensed-Bold.ttf" id="2_omlnh"]
+[ext_resource type="FontFile" path="res://assets/fonts/DMSans.ttf" id="3_lvrds"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_im0sm"]
+content_margin_left = 6.0
+content_margin_top = 6.0
+content_margin_right = 6.0
+content_margin_bottom = 6.0
+bg_color = Color(0.07058824, 0.12156863, 0.14509805, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.11764706, 0.18431373, 0.21568628, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7h6bm"]
+content_margin_left = 6.0
+content_margin_top = 6.0
+content_margin_right = 6.0
+content_margin_bottom = 6.0
+bg_color = Color(0.14117648, 0.25882354, 0.30588236, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 0.654902, 0.37254903, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_86uey"]
+content_margin_left = 6.0
+content_margin_top = 6.0
+content_margin_right = 6.0
+content_margin_bottom = 6.0
+bg_color = Color(0.10980392, 0.2, 0.23921569, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.1882353, 0.2784314, 0.3137255, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_5jbdf"]
+content_margin_left = 6.0
+content_margin_top = 6.0
+content_margin_right = 6.0
+content_margin_bottom = 6.0
+bg_color = Color(1, 0.654902, 0.37254903, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 0.72156864, 0.49019608, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_unkgg"]
+content_margin_left = 6.0
+content_margin_top = 6.0
+content_margin_right = 6.0
+content_margin_bottom = 6.0
+bg_color = Color(0.05490196, 0.09019608, 0.10980392, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.1882353, 0.2784314, 0.3137255, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_66ixa"]
+content_margin_left = 8.0
+content_margin_top = 8.0
+content_margin_right = 8.0
+content_margin_bottom = 8.0
+bg_color = Color(0.09803922, 0.16862746, 0.19607843, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.1882353, 0.2784314, 0.3137255, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yda6c"]
+bg_color = Color(0.043137256, 0.078431375, 0.09803922, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.1882353, 0.2784314, 0.3137255, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_thv0v"]
+bg_color = Color(1, 0.654902, 0.37254903, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_urds4"]
+content_margin_left = 8.0
+content_margin_top = 8.0
+content_margin_right = 8.0
+content_margin_bottom = 8.0
+bg_color = Color(0.09803922, 0.16862746, 0.19607843, 1)
+border_width_bottom = 2
+border_color = Color(1, 0.654902, 0.37254903, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ek3dl"]
+content_margin_left = 8.0
+content_margin_top = 8.0
+content_margin_right = 8.0
+content_margin_bottom = 8.0
+bg_color = Color(0.0627451, 0.105882354, 0.13333334, 1)
+
+[resource]
+default_font = ExtResource("3_lvrds")
+default_font_size = 14
+Button/colors/font_color = Color(0.9098039, 0.9411765, 0.92941177, 1)
+Button/colors/font_disabled_color = Color(0.33333334, 0.41960785, 0.4509804, 1)
+Button/colors/font_hover_color = Color(1, 1, 1, 1)
+Button/colors/font_pressed_color = Color(0.0627451, 0.105882354, 0.13333334, 1)
+Button/font_sizes/font_size = 15
+Button/fonts/font = ExtResource("1_fenpc")
+Button/styles/disabled = SubResource("StyleBoxFlat_im0sm")
+Button/styles/focus = SubResource("StyleBoxFlat_7h6bm")
+Button/styles/hover = SubResource("StyleBoxFlat_7h6bm")
+Button/styles/normal = SubResource("StyleBoxFlat_86uey")
+Button/styles/pressed = SubResource("StyleBoxFlat_5jbdf")
+Label/colors/font_color = Color(0.9098039, 0.9411765, 0.92941177, 1)
+LineEdit/colors/font_color = Color(0.9098039, 0.9411765, 0.92941177, 1)
+LineEdit/styles/focus = SubResource("StyleBoxFlat_7h6bm")
+LineEdit/styles/normal = SubResource("StyleBoxFlat_unkgg")
+Panel/styles/panel = SubResource("StyleBoxFlat_66ixa")
+PanelContainer/styles/panel = SubResource("StyleBoxFlat_66ixa")
+ProgressBar/colors/font_color = Color(1, 1, 1, 1)
+ProgressBar/font_sizes/font_size = 12
+ProgressBar/fonts/font = ExtResource("1_fenpc")
+ProgressBar/styles/background = SubResource("StyleBoxFlat_yda6c")
+ProgressBar/styles/fill = SubResource("StyleBoxFlat_thv0v")
+TabBar/colors/font_selected_color = Color(1, 0.654902, 0.37254903, 1)
+TabBar/colors/font_unselected_color = Color(0.56078434, 0.65882355, 0.60784316, 1)
+TabBar/font_sizes/font_size = 15
+TabBar/fonts/font = ExtResource("2_omlnh")
+TabBar/styles/tab_hovered = SubResource("StyleBoxFlat_urds4")
+TabBar/styles/tab_selected = SubResource("StyleBoxFlat_urds4")
+TabBar/styles/tab_unselected = SubResource("StyleBoxFlat_ek3dl")

@@ -1,0 +1,14 @@
+node_modules/
+.godot/
+.import/
+export_presets.cfg
+*.translation
+*.pck
+*.apk
+*.aab
+*.exe
+*.x86_64
+*.zip
+*.wasm
+.DS_Store
+Thumbs.db

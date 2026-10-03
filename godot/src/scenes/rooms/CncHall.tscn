@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://d7m1k5v3x8l4c"]
+
+[ext_resource type="Script" path="res://src/rooms/CncHall.gd" id="1_cnc"]
+
+[node name="CncHall" type="Node2D"]
+script = ExtResource("1_cnc")

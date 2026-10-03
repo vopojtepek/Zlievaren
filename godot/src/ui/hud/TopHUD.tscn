@@ -1,0 +1,164 @@
+[gd_scene load_steps=3 format=3 uid="uid://cx6g04nh3l2u0"]
+
+[ext_resource type="Script" path="res://src/ui/hud/TopHUD.gd" id="1_tophud"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hud"]
+bg_color = Color(0.094, 0.149, 0.165, 0.95)
+border_width_bottom = 2
+border_color = Color(0.247, 0.380, 0.404, 1.0)
+content_margin_left = 20.0
+content_margin_top = 8.0
+content_margin_right = 20.0
+content_margin_bottom = 8.0
+
+[node name="TopHUD" type="PanelContainer"]
+custom_minimum_size = Vector2(1920, 72)
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 72.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_hud")
+script = ExtResource("1_tophud")
+
+[node name="HBox" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="LeftBox" type="HBoxContainer" parent="HBox"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Title" type="Label" parent="HBox/LeftBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.957, 0.808, 0.533, 1)
+theme_override_font_sizes/font_size = 18
+text = "ŽERAVÁ ZLIEVAREŇ"
+vertical_alignment = 1
+
+[node name="Sep1" type="VSeparator" parent="HBox/LeftBox"]
+layout_mode = 2
+
+[node name="MoneyLabel" type="Label" parent="HBox/LeftBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.447, 0.906, 0.659, 1)
+theme_override_font_sizes/font_size = 18
+text = "1 000 ₵"
+vertical_alignment = 1
+
+[node name="RepLabel" type="Label" parent="HBox/LeftBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.969, 0.886, 0.678, 1)
+theme_override_font_sizes/font_size = 15
+text = "⭐ 0"
+vertical_alignment = 1
+
+[node name="CenterBox" type="HBoxContainer" parent="HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+theme_override_constants/separation = 20
+
+[node name="TimeBox" type="HBoxContainer" parent="HBox/CenterBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="DayLabel" type="Label" parent="HBox/CenterBox/TimeBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "Deň 1"
+vertical_alignment = 1
+
+[node name="ClockLabel" type="Label" parent="HBox/CenterBox/TimeBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.957, 0.808, 0.533, 1)
+theme_override_font_sizes/font_size = 18
+text = "06:00"
+vertical_alignment = 1
+
+[node name="ShiftBadge" type="Button" parent="HBox/CenterBox/TimeBox"]
+layout_mode = 2
+flat = true
+text = "Ranná smena (Miči)"
+
+[node name="Sep2" type="VSeparator" parent="HBox/CenterBox"]
+layout_mode = 2
+
+[node name="NavBox" type="HBoxContainer" parent="HBox/CenterBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="BtnFoundry" type="Button" parent="HBox/CenterBox/NavBox"]
+layout_mode = 2
+toggle_mode = true
+button_pressed = true
+text = "[1] Taviareň"
+
+[node name="BtnWarehouse" type="Button" parent="HBox/CenterBox/NavBox"]
+layout_mode = 2
+toggle_mode = true
+text = "[2] Sklad"
+
+[node name="BtnWasher" type="Button" parent="HBox/CenterBox/NavBox"]
+layout_mode = 2
+toggle_mode = true
+text = "[3] Pieskovač"
+
+[node name="BtnCnc" type="Button" parent="HBox/CenterBox/NavBox"]
+layout_mode = 2
+toggle_mode = true
+text = "[4] CNC"
+
+[node name="BtnOffice" type="Button" parent="HBox/CenterBox/NavBox"]
+layout_mode = 2
+toggle_mode = true
+text = "[5] Kancelária"
+
+[node name="RightBox" type="HBoxContainer" parent="HBox"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="StockBox" type="VBoxContainer" parent="HBox/RightBox"]
+layout_mode = 2
+alignment = 1
+
+[node name="RawStockLabel" type="Label" parent="HBox/RightBox/StockBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.722, 0.820, 0.835, 1)
+theme_override_font_sizes/font_size = 12
+text = "Fe: 60 | Oceľ: 0 | Meď: 0 | Cín: 0 | Zn: 20"
+horizontal_alignment = 2
+
+[node name="GoodsStockLabel" type="Label" parent="HBox/RightBox/StockBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.765, 0.871, 0.733, 1)
+theme_override_font_sizes/font_size = 12
+text = "Sklad výrobkov: 0 / 20 ks"
+horizontal_alignment = 2
+
+[node name="Sep3" type="VSeparator" parent="HBox/RightBox"]
+layout_mode = 2
+
+[node name="SpeedBox" type="HBoxContainer" parent="HBox/RightBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="BtnPause" type="Button" parent="HBox/RightBox/SpeedBox"]
+layout_mode = 2
+toggle_mode = true
+text = "⏸"
+
+[node name="Btn1x" type="Button" parent="HBox/RightBox/SpeedBox"]
+layout_mode = 2
+toggle_mode = true
+button_pressed = true
+text = "1×"
+
+[node name="Btn2x" type="Button" parent="HBox/RightBox/SpeedBox"]
+layout_mode = 2
+toggle_mode = true
+text = "2×"
+
+[node name="Btn5x" type="Button" parent="HBox/RightBox/SpeedBox"]
+layout_mode = 2
+toggle_mode = true
+text = "5×"

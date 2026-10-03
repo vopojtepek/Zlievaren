@@ -1,0 +1,182 @@
+[gd_scene load_steps=3 format=3 uid="uid://dmc8j4p1l2w3m"]
+
+[ext_resource type="Script" path="res://src/ui/inspectors/MachineInspector.gd" id="1_mach_insp"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_insp"]
+bg_color = Color(0.129, 0.196, 0.220, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.247, 0.380, 0.404, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+content_margin_left = 16.0
+content_margin_top = 16.0
+content_margin_right = 16.0
+content_margin_bottom = 16.0
+
+[node name="MachineInspector" type="PanelContainer"]
+custom_minimum_size = Vector2(340, 560)
+offset_right = 340.0
+offset_bottom = 560.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_insp")
+script = ExtResource("1_mach_insp")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Header" type="VBoxContainer" parent="VBox"]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="VBox/Header"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.957, 0.808, 0.533, 1)
+theme_override_font_sizes/font_size = 18
+text = "Stanovište 01"
+
+[node name="KindLabel" type="Label" parent="VBox/Header"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.722, 0.820, 0.835, 1)
+theme_override_font_sizes/font_size = 13
+text = "ODSTREDIVKA · MK I"
+
+[node name="StatusBadge" type="Label" parent="VBox/Header"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Pripravená"
+
+[node name="OperatorBox" type="PanelContainer" parent="VBox"]
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="VBox/OperatorBox"]
+layout_mode = 2
+
+[node name="OperatorName" type="Label" parent="VBox/OperatorBox/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Obsluha: Mišo"
+
+[node name="BtnGotoOffice" type="Button" parent="VBox/OperatorBox/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "Vybaviť v Kancelárii →"
+
+[node name="PurchaseControls" type="VBoxContainer" parent="VBox"]
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+alignment = 1
+
+[node name="BtnBuyMachine" type="Button" parent="VBox/PurchaseControls"]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+text = "Kúpiť odstredivku · 1 200 ₵"
+
+[node name="OwnedControls" type="VBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="ProductBox" type="VBoxContainer" parent="VBox/OwnedControls"]
+layout_mode = 2
+
+[node name="ProductLabel" type="Label" parent="VBox/OwnedControls/ProductBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Výrobok:"
+
+[node name="ProductHBox" type="HBoxContainer" parent="VBox/OwnedControls/ProductBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ProductIcon" type="TextureRect" parent="VBox/OwnedControls/ProductBox/ProductHBox"]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ProductSelect" type="OptionButton" parent="VBox/OwnedControls/ProductBox/ProductHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="DimensionsLabel" type="Label" parent="VBox/OwnedControls/ProductBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.722, 0.820, 0.835, 1)
+theme_override_font_sizes/font_size = 11
+text = "LI · Ø 180 × 800 mm"
+
+[node name="RecipeLabel" type="Label" parent="VBox/OwnedControls/ProductBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.722, 0.820, 0.835, 1)
+theme_override_font_sizes/font_size = 11
+text = "Vsádzka: Železo 6 kg, Zinok 1 kg"
+
+[node name="QualityLabel" type="Label" parent="VBox/OwnedControls/ProductBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.898, 0.690, 0.518, 1)
+theme_override_font_sizes/font_size = 11
+text = "Riziko nepodarku: 10.0 %"
+
+[node name="TempBox" type="VBoxContainer" parent="VBox/OwnedControls"]
+layout_mode = 2
+
+[node name="HBox" type="HBoxContainer" parent="VBox/OwnedControls/TempBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBox/OwnedControls/TempBox/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+text = "Teplota formy:"
+
+[node name="TempLabel" type="Label" parent="VBox/OwnedControls/TempBox/HBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "20 °C"
+
+[node name="TempBar" type="ProgressBar" parent="VBox/OwnedControls/TempBox"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+show_percentage = false
+
+[node name="CycleBox" type="VBoxContainer" parent="VBox/OwnedControls"]
+layout_mode = 2
+
+[node name="CycleLabel" type="Label" parent="VBox/OwnedControls/CycleBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Cyklus: 28 s"
+
+[node name="CycleBar" type="ProgressBar" parent="VBox/OwnedControls/CycleBox"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+show_percentage = false
+
+[node name="ActionBox" type="VBoxContainer" parent="VBox/OwnedControls"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="CheckAuto" type="CheckBox" parent="VBox/OwnedControls/ActionBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Automatická séria"
+
+[node name="BtnAction" type="Button" parent="VBox/OwnedControls/ActionBox"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Odliať dávku"
+
+[node name="BtnUpgrade" type="Button" parent="VBox/OwnedControls/ActionBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Vylepšiť na MK II · 1 000 ₵"
+
+[node name="HintLabel" type="Label" parent="VBox/OwnedControls"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.4, 0.4, 1)
+theme_override_font_sizes/font_size = 11
+autowrap_mode = 2

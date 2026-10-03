@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="350 190 400 340">
+  <!-- 3D Perspective Roof & Right Wall -->
+  <polygon points="372,231 406,202 724,202 690,231" fill="#4b8da8" stroke="#92b9c9" stroke-width="1"/>
+  <polygon points="690,231 724,202 724,422 690,452" fill="#154e71" stroke="#3b7690" stroke-width="1"/>
+
+  <!-- Main Blue Enclosure -->
+  <rect x="372" y="231" width="318" height="221" rx="5" fill="#28698f"/>
+  <line x1="377" y1="233" x2="687" y2="233" stroke="#85b8cc" stroke-width="2"/>
+  <rect x="381" y="241" width="300" height="42" rx="3" fill="#1d4868"/>
+  <text x="397" y="268" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="#f0f5e6">PIESKOVAČ</text>
+  <text x="397" y="278" font-family="Arial, sans-serif" font-size="9" fill="#a6cbdc">VODNÉ ČISTENIE / UZAVRETÁ KOMORA</text>
+
+  <!-- Service Doors -->
+  <rect x="384" y="294" width="204" height="136" rx="3" fill="#235a80"/>
+  <rect x="390" y="300" width="192" height="124" rx="3" fill="#2c7198"/>
+  <line x1="487" y1="302" x2="487" y2="421" stroke="#163f5d" stroke-width="3"/>
+  <rect x="476" y="347" width="5" height="24" rx="2" fill="#c4d4d3"/>
+  <rect x="497" y="347" width="5" height="24" rx="2" fill="#c4d4d3"/>
+
+  <!-- Control Panel & Pressure Gauge -->
+  <rect x="604" y="296" width="66" height="118" rx="4" fill="#153c55"/>
+  <rect x="612" y="305" width="50" height="31" rx="2" fill="#0c2535"/>
+  <circle cx="624" cy="351" r="7" fill="#4f7274"/>
+  <circle cx="649" cy="351" r="7" fill="#932f37"/>
+  <circle cx="636" cy="387" r="18" fill="#96b4c2"/>
+  <circle cx="636" cy="387" r="14" fill="#e2e7d8"/>
+  <line x1="636" y1="387" x2="627" y2="394" stroke="#a44d42" stroke-width="2"/>
+
+  <!-- Lower Base & Recirculating Filtration Tank -->
+  <rect x="371" y="436" width="320" height="17" rx="2" fill="#142d41"/>
+  <rect x="479" y="466" width="141" height="54" rx="5" fill="#25495c"/>
+  <polygon points="479,466 490,457 630,457 619,466" fill="#6a98ab"/>
+  <rect x="487" y="476" width="8" height="31" rx="2" fill="#7bc2d2"/>
+  <text x="557" y="492" font-family="Arial, sans-serif" font-size="10" fill="#c1d8dd">VODA · FILTRÁCIA</text>
+  <circle cx="642" cy="482" r="14" fill="#397d96"/>
+  <circle cx="642" cy="482" r="7" fill="#142f45"/>
+  <line x1="643" y1="467" x2="643" y2="448" stroke="#7aafbd" stroke-width="5"/>
+</svg>

@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://d3m7k8v1x4l9w"]
+
+[ext_resource type="Script" path="res://src/rooms/WarehouseHall.gd" id="1_warehouse"]
+
+[node name="WarehouseHall" type="Node2D"]
+script = ExtResource("1_warehouse")

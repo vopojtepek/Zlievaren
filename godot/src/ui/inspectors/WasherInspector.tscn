@@ -1,0 +1,97 @@
+[gd_scene load_steps=3 format=3 uid="uid://dkn4g1v8s9a2f"]
+
+[ext_resource type="Script" path="res://src/ui/inspectors/WasherInspector.gd" id="1_wash_insp"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wash"]
+bg_color = Color(0.129, 0.196, 0.220, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.247, 0.380, 0.404, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+content_margin_left = 16.0
+content_margin_top = 16.0
+content_margin_right = 16.0
+content_margin_bottom = 16.0
+
+[node name="WasherInspector" type="PanelContainer"]
+custom_minimum_size = Vector2(340, 520)
+offset_right = 340.0
+offset_bottom = 520.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_wash")
+script = ExtResource("1_wash_insp")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="TitleLabel" type="Label" parent="VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.957, 0.808, 0.533, 1)
+theme_override_font_sizes/font_size = 18
+text = "Pieskovač a čistička rúr"
+
+[node name="StatusLabel" type="Label" parent="VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Pripravený na výrobok"
+
+[node name="OperatorLabel" type="Label" parent="VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Obsluha: Dávid"
+
+[node name="ProgressBar" type="ProgressBar" parent="VBox"]
+custom_minimum_size = Vector2(0, 14)
+layout_mode = 2
+show_percentage = false
+
+[node name="ProductBox" type="VBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Label" type="Label" parent="VBox/ProductBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Program čistenia:"
+
+[node name="ProductSelect" type="OptionButton" parent="VBox/ProductBox"]
+layout_mode = 2
+
+[node name="InputStockLabel" type="Label" parent="VBox/ProductBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.722, 0.820, 0.835, 1)
+theme_override_font_sizes/font_size = 12
+text = "Voľné odliatky v sklade: 0 ks"
+
+[node name="OutputStockLabel" type="Label" parent="VBox/ProductBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.447, 0.906, 0.659, 1)
+theme_override_font_sizes/font_size = 12
+text = "Očistené výrobky v sklade: 0 ks"
+
+[node name="CheckAuto" type="CheckBox" parent="VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Automatický cyklus čistenia"
+
+[node name="BtnStart" type="Button" parent="VBox"]
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+text = "Naložiť a vyčistiť · 6 ₵"
+
+[node name="TotalLabel" type="Label" parent="VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.722, 0.820, 0.835, 1)
+theme_override_font_sizes/font_size = 12
+text = "Očistených celkom: 0 ks"
+
+[node name="HintLabel" type="Label" parent="VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.4, 0.4, 1)
+theme_override_font_sizes/font_size = 11
+autowrap_mode = 2

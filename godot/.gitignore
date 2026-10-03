@@ -1,0 +1,14 @@
+# Godot 4.x gitignore
+.godot/
+.import/
+export_presets.cfg
+*.translation
+*.pck
+*.apk
+*.aab
+*.exe
+*.x86_64
+*.zip
+*.wasm
+*.html
+*.js

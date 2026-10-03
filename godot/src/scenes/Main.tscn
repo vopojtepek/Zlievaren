@@ -1,0 +1,99 @@
+[gd_scene format=3 uid="uid://d3h1e8x7f4m0"]
+
+[ext_resource type="Script" uid="uid://dss4gr5jkh8vg" path="res://src/scenes/Main.gd" id="1_main"]
+[ext_resource type="PackedScene" uid="uid://b8m3k2wax1l4f" path="res://src/scenes/rooms/FoundryHall.tscn" id="2_foundry"]
+[ext_resource type="PackedScene" uid="uid://d3m7k8v1x4maw" path="res://src/scenes/rooms/WarehouseHall.tscn" id="3_warehouse"]
+[ext_resource type="PackedScene" uid="uid://c5m8k1v7x3l2a" path="res://src/scenes/rooms/WasherHall.tscn" id="4_washer"]
+[ext_resource type="PackedScene" uid="uid://c75y3yue1qdk" path="res://src/scenes/rooms/CncHall.tscn" id="5_cnc"]
+[ext_resource type="PackedScene" uid="uid://cx6g04nh3l2u0" path="res://src/ui/hud/TopHUD.tscn" id="6_tophud"]
+[ext_resource type="PackedScene" uid="uid://dmc8j4p1l2w3m" path="res://src/ui/inspectors/MachineInspector.tscn" id="7_mach_insp"]
+[ext_resource type="PackedScene" uid="uid://c8cav2m1x4l7p" path="res://src/ui/inspectors/WarehouseInspector.tscn" id="8_wh_insp"]
+[ext_resource type="PackedScene" uid="uid://dkn4g1v8taa2f" path="res://src/ui/inspectors/WasherInspector.tscn" id="9_wash_insp"]
+[ext_resource type="PackedScene" uid="uid://df7x3m1v8q4r2" path="res://src/ui/inspectors/CncInspector.tscn" id="10_cnc_insp"]
+[ext_resource type="PackedScene" uid="uid://ct5p8r2q4v6m1" path="res://src/ui/panels/ManagementTabs.tscn" id="11_mgmt_tabs"]
+[ext_resource type="PackedScene" uid="uid://c67u8m2v5map4" path="res://src/ui/office/OfficeView.tscn" id="12_office_view"]
+[ext_resource type="PackedScene" uid="uid://c3q4r3x7l1m2k" path="res://src/ui/panels/ToastManager.tscn" id="13_toast"]
+
+[node name="Main" type="Node2D" unique_id=2019171333]
+script = ExtResource("1_main")
+
+[node name="World2D" type="Node2D" parent="." unique_id=1656766054]
+
+[node name="RoomContainer" type="Node2D" parent="World2D" unique_id=1693442528]
+position = Vector2(80, 85)
+
+[node name="FoundryHall" parent="World2D/RoomContainer" unique_id=243887851 instance=ExtResource("2_foundry")]
+
+[node name="WarehouseHall" parent="World2D/RoomContainer" unique_id=2024238919 instance=ExtResource("3_warehouse")]
+
+[node name="WasherHall" parent="World2D/RoomContainer" unique_id=1875065316 instance=ExtResource("4_washer")]
+
+[node name="CncHall" parent="World2D/RoomContainer" unique_id=328397346 instance=ExtResource("5_cnc")]
+
+[node name="UI" type="CanvasLayer" parent="." unique_id=1696457623]
+
+[node name="TopHUD" parent="UI" unique_id=1993841729 instance=ExtResource("6_tophud")]
+
+[node name="Inspectors" type="Control" parent="UI" unique_id=246563219]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 1220.0
+offset_top = 85.0
+offset_right = 1860.0
+offset_bottom = 775.0
+
+[node name="MachineInspector" parent="UI/Inspectors" unique_id=61164927 instance=ExtResource("7_mach_insp")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 0.0
+offset_bottom = 0.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="WarehouseInspector" parent="UI/Inspectors" unique_id=311903113 instance=ExtResource("8_wh_insp")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 0.0
+offset_bottom = 0.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="WasherInspector" parent="UI/Inspectors" unique_id=2015463815 instance=ExtResource("9_wash_insp")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 0.0
+offset_bottom = 0.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="CncInspector" parent="UI/Inspectors" unique_id=2118362274 instance=ExtResource("10_cnc_insp")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 0.0
+offset_bottom = 0.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ManagementTabs" parent="UI" unique_id=740870579 instance=ExtResource("11_mgmt_tabs")]
+offset_left = 40.0
+offset_top = -280.0
+offset_right = -40.0
+offset_bottom = -20.0
+
+[node name="OfficeView" parent="UI" unique_id=958495900 instance=ExtResource("12_office_view")]
+offset_left = 40.0
+offset_top = 85.0
+offset_right = -40.0
+offset_bottom = -20.0
+
+[node name="ToastManager" parent="UI" unique_id=1621053367 instance=ExtResource("13_toast")]
+grow_horizontal = 2
+grow_vertical = 2

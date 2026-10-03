@@ -1,0 +1,105 @@
+[gd_scene load_steps=3 format=3 uid="uid://ct5p8r2q4v6m1"]
+
+[ext_resource type="Script" path="res://src/ui/panels/ManagementTabs.gd" id="1_mgmt_tabs"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mgmt"]
+bg_color = Color(0.106, 0.165, 0.180, 0.96)
+border_width_top = 2
+border_color = Color(0.247, 0.380, 0.404, 1)
+content_margin_left = 20.0
+content_margin_top = 12.0
+content_margin_right = 20.0
+content_margin_bottom = 12.0
+
+[node name="ManagementTabs" type="PanelContainer"]
+custom_minimum_size = Vector2(1920, 240)
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -240.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_mgmt")
+script = ExtResource("1_mgmt_tabs")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Header" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+
+[node name="Tabs" type="HBoxContainer" parent="VBox/Header"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="BtnMarket" type="Button" parent="VBox/Header/Tabs"]
+layout_mode = 2
+toggle_mode = true
+button_pressed = true
+text = "Trh & Burza"
+
+[node name="BtnContracts" type="Button" parent="VBox/Header/Tabs"]
+layout_mode = 2
+toggle_mode = true
+text = "Zákazky"
+
+[node name="BtnLedger" type="Button" parent="VBox/Header/Tabs"]
+layout_mode = 2
+toggle_mode = true
+text = "Denník udalostí"
+
+[node name="Content" type="MarginContainer" parent="VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="MarketPanel" type="VBoxContainer" parent="VBox/Content"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="TickerLabel" type="Label" parent="VBox/Content/MarketPanel"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.957, 0.808, 0.533, 1)
+theme_override_font_sizes/font_size = 12
+text = "Vyrovnaný trh"
+
+[node name="Scroll" type="ScrollContainer" parent="VBox/Content/MarketPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ItemsList" type="VBoxContainer" parent="VBox/Content/MarketPanel/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="ContractsPanel" type="VBoxContainer" parent="VBox/Content"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Scroll" type="ScrollContainer" parent="VBox/Content/ContractsPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ContractsList" type="VBoxContainer" parent="VBox/Content/ContractsPanel/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="CompaniesList" type="HBoxContainer" parent="VBox/Content/ContractsPanel"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="LedgerPanel" type="VBoxContainer" parent="VBox/Content"]
+visible = false
+layout_mode = 2
+
+[node name="Scroll" type="ScrollContainer" parent="VBox/Content/LedgerPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="LedgerList" type="VBoxContainer" parent="VBox/Content/LedgerPanel/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4

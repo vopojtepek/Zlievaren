@@ -1,0 +1,272 @@
+[gd_scene load_steps=4 format=3 uid="uid://c67u8m2v5l9p4"]
+
+[ext_resource type="Script" path="res://src/ui/office/OfficeView.gd" id="1_off_view"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_off"]
+bg_color = Color(0.106, 0.165, 0.180, 0.98)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.247, 0.380, 0.404, 1)
+content_margin_left = 24.0
+content_margin_top = 20.0
+content_margin_right = 24.0
+content_margin_bottom = 20.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_alert"]
+bg_color = Color(0.45, 0.15, 0.15, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9, 0.3, 0.3, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+content_margin_left = 16.0
+content_margin_top = 10.0
+content_margin_right = 16.0
+content_margin_bottom = 10.0
+
+[node name="OfficeView" type="PanelContainer"]
+custom_minimum_size = Vector2(1100, 690)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_off")
+script = ExtResource("1_off_view")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="TopHeader" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+
+[node name="TitleBox" type="VBoxContainer" parent="VBox/TopHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Eyebrow" type="Label" parent="VBox/TopHeader/TitleBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.722, 0.820, 0.835, 1)
+theme_override_font_sizes/font_size = 11
+text = "ĽUDIA A PREVÁDZKA"
+
+[node name="Title" type="Label" parent="VBox/TopHeader/TitleBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.957, 0.808, 0.533, 1)
+theme_override_font_sizes/font_size = 20
+text = "Personálne oddelenie"
+
+[node name="EmployeesCountBadge" type="Label" parent="VBox/TopHeader"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.447, 0.906, 0.659, 1)
+theme_override_font_sizes/font_size = 14
+text = "2 zamestnanci"
+
+[node name="StatsStrip" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="NextPayBox" type="VBoxContainer" parent="VBox/StatsStrip"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="VBox/StatsStrip/NextPayBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.722, 0.820, 0.835, 1)
+theme_override_font_sizes/font_size = 11
+text = "Do najbližšej výplaty"
+
+[node name="Value" type="Label" parent="VBox/StatsStrip/NextPayBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.957, 0.808, 0.533, 1)
+theme_override_font_sizes/font_size = 16
+text = "15 min 0 s"
+
+[node name="AccruedBox" type="VBoxContainer" parent="VBox/StatsStrip"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="VBox/StatsStrip/AccruedBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.722, 0.820, 0.835, 1)
+theme_override_font_sizes/font_size = 11
+text = "Nazbierané mzdy a odstupné"
+
+[node name="Value" type="Label" parent="VBox/StatsStrip/AccruedBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.957, 0.808, 0.533, 1)
+theme_override_font_sizes/font_size = 16
+text = "0 ₵"
+
+[node name="WeeklyBox" type="VBoxContainer" parent="VBox/StatsStrip"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="VBox/StatsStrip/WeeklyBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.722, 0.820, 0.835, 1)
+theme_override_font_sizes/font_size = 11
+text = "Celý týždeň bez absencií"
+
+[node name="Value" type="Label" parent="VBox/StatsStrip/WeeklyBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.722, 0.820, 0.835, 1)
+theme_override_font_sizes/font_size = 16
+text = "280 ₵"
+
+[node name="DebtBox" type="VBoxContainer" parent="VBox/StatsStrip"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="VBox/StatsStrip/DebtBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.722, 0.820, 0.835, 1)
+theme_override_font_sizes/font_size = 11
+text = "Dlžné mzdy"
+
+[node name="Value" type="Label" parent="VBox/StatsStrip/DebtBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.4, 0.4, 1)
+theme_override_font_sizes/font_size = 16
+text = "0 ₵"
+
+[node name="DebtAlert" type="PanelContainer" parent="VBox"]
+visible = false
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_alert")
+
+[node name="HBox" type="HBoxContainer" parent="VBox/DebtAlert"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBox/DebtAlert/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Nové dávky stoja do doplatenia miezd."
+
+[node name="BtnPayDebt" type="Button" parent="VBox/DebtAlert/HBox"]
+layout_mode = 2
+text = "Doplatiť dlh"
+
+[node name="TabsNav" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="BtnOverview" type="Button" parent="VBox/TabsNav"]
+layout_mode = 2
+toggle_mode = true
+button_pressed = true
+text = "Dochádzka a pracovníci"
+
+[node name="BtnHire" type="Button" parent="VBox/TabsNav"]
+layout_mode = 2
+toggle_mode = true
+text = "Nábor"
+
+[node name="BtnPayroll" type="Button" parent="VBox/TabsNav"]
+layout_mode = 2
+toggle_mode = true
+text = "Mzdy a história"
+
+[node name="ScrollContent" type="ScrollContainer" parent="VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ContentBox" type="MarginContainer" parent="VBox/ScrollContent"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_left = 6
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 6
+theme_override_constants/margin_bottom = 6
+
+[node name="TabOverview" type="VBoxContainer" parent="VBox/ScrollContent/ContentBox"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="ShiftTitle" type="Label" parent="VBox/ScrollContent/ContentBox/TabOverview"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.957, 0.808, 0.533, 1)
+theme_override_font_sizes/font_size = 16
+text = "Aktuálna smena"
+
+[node name="MissingList" type="VBoxContainer" parent="VBox/ScrollContent/ContentBox/TabOverview"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="HSeparator" type="HSeparator" parent="VBox/ScrollContent/ContentBox/TabOverview"]
+layout_mode = 2
+
+[node name="SectionEmployees" type="Label" parent="VBox/ScrollContent/ContentBox/TabOverview"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.722, 0.820, 0.835, 1)
+theme_override_font_sizes/font_size = 15
+text = "Zoznam zamestnancov"
+
+[node name="EmployeesGrid" type="GridContainer" parent="VBox/ScrollContent/ContentBox/TabOverview"]
+layout_mode = 2
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 16
+columns = 3
+
+[node name="TabHire" type="VBoxContainer" parent="VBox/ScrollContent/ContentBox"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="RecruitHead" type="VBoxContainer" parent="VBox/ScrollContent/ContentBox/TabHire"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="VBox/ScrollContent/ContentBox/TabHire/RecruitHead"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "Vyber pozíciu:"
+
+[node name="PositionSelect" type="OptionButton" parent="VBox/ScrollContent/ContentBox/TabHire/RecruitHead"]
+layout_mode = 2
+
+[node name="FormulaLabel" type="Label" parent="VBox/ScrollContent/ContentBox/TabHire/RecruitHead"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.722, 0.820, 0.835, 1)
+theme_override_font_sizes/font_size = 11
+autowrap_mode = 2
+
+[node name="ShiftsList" type="VBoxContainer" parent="VBox/ScrollContent/ContentBox/TabHire"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="TabPayroll" type="VBoxContainer" parent="VBox/ScrollContent/ContentBox"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Title1" type="Label" parent="VBox/ScrollContent/ContentBox/TabPayroll"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.957, 0.808, 0.533, 1)
+theme_override_font_sizes/font_size = 16
+text = "Najbližšia týždenná výplata"
+
+[node name="LinesTable" type="VBoxContainer" parent="VBox/ScrollContent/ContentBox/TabPayroll"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="HSeparator" type="HSeparator" parent="VBox/ScrollContent/ContentBox/TabPayroll"]
+layout_mode = 2
+
+[node name="Title2" type="Label" parent="VBox/ScrollContent/ContentBox/TabPayroll"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.957, 0.808, 0.533, 1)
+theme_override_font_sizes/font_size = 16
+text = "História výplat"
+
+[node name="HistoryList" type="VBoxContainer" parent="VBox/ScrollContent/ContentBox/TabPayroll"]
+layout_mode = 2
+theme_override_constants/separation = 8

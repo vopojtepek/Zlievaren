@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-30 -70 60 80">
+  <ellipse cx="0" cy="4" rx="17" ry="6" fill="#142a2c" opacity="0.33"/>
+  <line x1="-6" y1="-19" x2="-8" y2="0" stroke="#203938" stroke-width="8" stroke-linecap="round"/>
+  <line x1="6" y1="-19" x2="8" y2="0" stroke="#203938" stroke-width="8" stroke-linecap="round"/>
+  <rect x="-13" y="-2" width="12" height="6" rx="2" fill="#172e30"/>
+  <rect x="3" y="-2" width="12" height="6" rx="2" fill="#172e30"/>
+  <rect x="-12" y="-38" width="25" height="25" rx="5" fill="#2e566d"/>
+  <rect x="-15" y="-37" width="6" height="18" rx="3" fill="#2e566d"/>
+  <line x1="13" y1="-34" x2="16" y2="-18" stroke="#d1a465" stroke-width="6" stroke-linecap="round"/>
+  <rect x="-10" y="-27" width="22" height="3" fill="#e9d6a9"/>
+  <rect x="-3" y="-37" width="6" height="23" fill="#d0a66b"/>
+  <circle cx="1" cy="-45" r="10" fill="#cab995"/>
+  <rect x="-12" y="-50" width="27" height="6" rx="3" fill="#58a0be"/>
+  <circle cx="1" cy="-52" r="10" fill="#58a0be"/>
+  <rect x="-9" y="-49" width="21" height="3" fill="#f1d17a"/>
+  <rect x="-5" y="-45" width="14" height="4" rx="2" fill="#425850"/>
+</svg>
