@@ -21,8 +21,8 @@ func _input(event: InputEvent) -> void:
 		var washer_rect = Rect2(372, 231, 318, 221)
 		if washer_rect.has_point(mouse_pos):
 			var gm = get_node_or_null("/root/GameManager")
-			if gm != null and gm.state.washer.active == null:
-				gm.execute({ "type": "washer", "action": "start" })
+			if gm != null:
+				get_node("/root/EventBus").washer_inspector_requested.emit()
 
 func _draw() -> void:
 	var state = get_room_state()

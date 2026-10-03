@@ -215,12 +215,12 @@ func build(root: Node) -> void:
 	sidebar.custom_minimum_size.x = 345
 	columns.add_child(sidebar)
 	for inspector in [main.warehouse_inspector, main.washer_inspector, main.cnc_inspector]:
-		adopt(inspector, sidebar)
+		adopt(inspector, scene_info)
 		inspector.add_theme_stylebox_override("panel", panel_style("#1f333b", 23))
 		_wrap_labels(inspector)
 	machine_modal = preload("res://src/ui/inspectors/MachineModal.gd").new()
 	add_child(machine_modal)
-	machine_modal.build(main.machine_inspector, main.top_hud)
+	machine_modal.build(main.machine_inspector, main.top_hud, main.warehouse_inspector, main.washer_inspector)
 	main.machine_inspector.add_theme_stylebox_override("panel", panel_style("#1f333b", 23))
 	_wrap_labels(main.machine_inspector)
 	for b in [main.machine_inspector.btn_action, main.machine_inspector.btn_buy_machine, main.washer_inspector.btn_start, main.warehouse_inspector.btn_stock_move]:
@@ -273,7 +273,7 @@ func _room_changed(id: String) -> void:
 		nav_buttons[key].set_pressed_no_signal(key == id)
 	scene.visible = id != "office"
 	scene_info.visible = id != "office"
-	sidebar.visible = id != "office" and id != "foundry"
+	sidebar.hide()
 	main.management_tabs.visible = id == "office"
 	main.inspectors_container.hide()
 	_resize_scene.call_deferred()

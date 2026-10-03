@@ -147,8 +147,8 @@ func run() -> void:
 		gm.change_room(room)
 		await settle()
 		check(not modal.visible, "Room navigation closes modal")
-		check(main.management_tabs.visible, "Other rooms keep management tabs")
-		check(layout.sidebar.visible == (room != "office"), "Other rooms keep sidebar behavior")
+		check(main.management_tabs.visible == (room == "office"), "Management tabs only in office")
+		check(not layout.sidebar.visible, "Halls have no sidebar")
 		gm.change_room("foundry")
 		modal.open_slot(0)
 	inspector.btn_goto_office.pressed.emit()
@@ -163,7 +163,106 @@ func run() -> void:
 	await settle()
 	check(not modal.visible, "Backdrop click closes modal")
 	check(not layout.sidebar.visible and not main.management_tabs.visible, "Returning to foundry keeps simplified layout")
+	await check_other_halls(modal)
 	print("MACHINE MODAL CHECKS: %d failures" % failures)
 	main.queue_free()
 	await settle()
 	quit(1 if failures else 0)
+
+func check_other_halls(modal: Control) -> void:
+	gm.new_game()
+	gm.state.money = 10000
+	gm.change_room("warehouse")
+	if DisplayServer.get_name() != "headless":
+		await settle()
+		await click_at(main.warehouse_hall.to_global(main.warehouse_hall.BIN_POSITIONS[0] - Vector2(0, 40)))
+		check(modal.visible, "Rendered bin click opens modal")
+		await click_at(Vector2(4, 150))
+		check(not modal.visible, "Warehouse backdrop closes without click-through")
+	gm.select_bin("copper")
+	check(not modal.visible, "Selecting bin does not open modal")
+	for bin_id in ["iron", "zinc", "steel", "copper", "tin", "goods"]:
+		events.bin_inspector_requested.emit(bin_id)
+		await settle()
+		check(modal.visible and main.warehouse_inspector.current_bin == bin_id, "Bin opens: " + bin_id)
+		check(not main.machine_inspector.is_visible_in_tree() and not main.washer_inspector.is_visible_in_tree(), "Only selected inspector visible")
+		check(not clock.is_paused, "Storage modal keeps simulation running")
+		if bin_id == "copper":
+			check(not gm.state.binUnlocked.copper, "Copper starts locked")
+			main.warehouse_inspector.btn_upgrade.pressed.emit()
+			check(gm.state.binUnlocked.copper and not gm.state.binUnlocked.tin, "Unlock targets selected bin")
+		await key(KEY_ESCAPE)
+		check(not modal.visible, "Storage Escape closes")
+	gm.state = Fixtures.fresh()
+	gm.state.money = 10000
+	gm.change_room("warehouse")
+	modal.open_bin("iron")
+	var iron_before: int = gm.state.raw.iron
+	var incoming_iron: int = gm.state.incoming.iron
+	main.warehouse_inspector.btn_stock_move.pressed.emit()
+	check(gm.state.raw.iron == iron_before + incoming_iron and gm.state.incoming.iron == 0, "Store action transfers selected material")
+	gm.change_room("washer")
+	check(not modal.visible, "Changing room closes storage")
+	Fixtures.perform(gm.state, {"type": "washer", "action": "configure", "product": "iron_pipe"})
+	gm.state.goods.iron_pipe = 4
+	events.washer_inspector_requested.emit()
+	if DisplayServer.get_name() != "headless":
+		modal.close()
+		await settle()
+		await click_at(main.washer_hall.to_global(Vector2(500, 330)))
+	check(modal.visible and gm.state.washer.active == null, "Opening washer does not start cycle")
+	main.washer_inspector.product_select.item_selected.emit(2)
+	check(gm.state.washer.product == "steel_pipe", "Washer product selection works")
+	main.washer_inspector.product_select.item_selected.emit(0)
+	main.washer_inspector.btn_start.pressed.emit()
+	check(gm.state.washer.active == "iron_pipe", "Washer starts via button")
+	main.washer_inspector.check_auto.toggled.emit(true)
+	check(gm.state.washer.auto, "Washer automation works")
+	FoundryEngine.tick(gm.state, 4.0)
+	events.tick_processed.emit(gm.state, 0.0)
+	check(main.washer_inspector.progress_bar.value > 0, "Washer progress updates live")
+	modal.close()
+	events.washer_inspector_requested.emit()
+	check(modal.visible, "Running washer can reopen")
+	await settle()
+	main.washer_inspector.product_select.show_popup()
+	await settle()
+	await key(KEY_ESCAPE)
+	check(modal.visible and not main.washer_inspector.product_select.get_popup().visible, "Washer Escape closes popup first")
+	modal.close_button.grab_focus()
+	for i in range(15):
+		await key(KEY_TAB)
+		check(modal.is_ancestor_of(root.gui_get_focus_owner()), "Washer focus trapped")
+	events.pause_toggled.emit(true)
+	modal.close()
+	modal.open_washer()
+	check(clock.is_paused, "Washer retains manual pause")
+	events.pause_toggled.emit(false)
+	for toast in main.toast_manager.container.get_children():
+		toast.queue_free()
+	await settle()
+	for viewport_size in [Vector2i(800, 600), Vector2i(1440, 1000), Vector2i(1920, 1080)]:
+		root.size = viewport_size
+		for room in ["warehouse", "washer", "cnc"]:
+			gm.change_room(room)
+			await settle()
+			check(not modal.visible, "Navigation leaves modal closed")
+			check(absf(layout.workshop.size.x - layout.columns.size.x) < 1, "Full width hall: " + room)
+			check(main.cnc_inspector.is_visible_in_tree() == (room == "cnc"), "CNC panel room visibility")
+			if room == "cnc":
+				check(main.cnc_inspector.get_parent() == layout.scene_info, "CNC below hall information")
+				check(main.cnc_inspector.get_index() == layout.scene_info.get_child_count() - 1, "CNC follows milestone")
+				check(absf(main.cnc_inspector.size.x - layout.scene_info.size.x) < 1, "CNC fills width")
+			else:
+				if room == "warehouse":
+					modal.open_bin("goods")
+				else:
+					modal.open_washer()
+				await settle()
+				check(modal.panel.get_global_rect().end.x <= root.size.x and modal.panel.get_global_rect().end.y <= root.size.y, "Modal fits: " + room)
+			if room == "cnc":
+				layout.scroll.scroll_vertical = int(main.cnc_inspector.position.y + layout.scene_info.position.y + layout.workshop.position.y)
+				await settle()
+			await shot(room + "-" + str(viewport_size.x))
+	gm.change_room("office")
+	check(not modal.visible and not main.cnc_inspector.is_visible_in_tree(), "Office hides all inspectors")

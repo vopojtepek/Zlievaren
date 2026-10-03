@@ -39,7 +39,7 @@ func _input(event: InputEvent) -> void:
 		if hover_bin >= 0:
 			var gm = get_node_or_null("/root/GameManager")
 			if gm != null:
-				gm.select_bin(BIN_IDS[hover_bin])
+				get_node("/root/EventBus").bin_inspector_requested.emit(BIN_IDS[hover_bin])
 
 func _draw() -> void:
 	var state = get_room_state()

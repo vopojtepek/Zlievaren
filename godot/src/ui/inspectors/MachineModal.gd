@@ -1,5 +1,7 @@
 extends Control
 ## One live inspector, hosted above the page without pausing simulation.
+var inspectors: Dictionary = {}
+var active_room: String = "foundry"
 var inspector: Control
 var hud: Control
 var panel: PanelContainer
@@ -7,9 +9,10 @@ var content_scroll: ScrollContainer
 var close_button: Button
 var previous_focus: Control
 
-func build(machine: Control, top_hud: Control) -> void:
+func build(machine: Control, top_hud: Control, warehouse: Control, washer: Control) -> void:
 	name = "MachineModal"
 	inspector = machine
+	inspectors = {"foundry": machine, "warehouse": warehouse, "washer": washer}
 	hud = top_hud
 	set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 	mouse_filter = MOUSE_FILTER_STOP
@@ -33,21 +36,24 @@ func build(machine: Control, top_hud: Control) -> void:
 	content_scroll.size_flags_vertical = SIZE_EXPAND_FILL
 	content_scroll.follow_focus = true
 	box.add_child(content_scroll)
-	inspector.reparent(content_scroll)
-	inspector.set_anchors_and_offsets_preset(PRESET_TOP_LEFT)
-	inspector.custom_minimum_size = Vector2.ZERO
-	inspector.size_flags_horizontal = SIZE_EXPAND_FILL
-	inspector.show()
+	for content in inspectors.values():
+		content.reparent(content_scroll)
+		content.set_anchors_and_offsets_preset(PRESET_TOP_LEFT)
+		content.custom_minimum_size = Vector2.ZERO
+		content.size_flags_horizontal = SIZE_EXPAND_FILL
+		content.hide()
 	gui_input.connect(_backdrop_input)
 	resized.connect(_resize_panel)
 	EventBus.machine_inspector_requested.connect(open_slot)
+	EventBus.bin_inspector_requested.connect(open_bin)
+	EventBus.washer_inspector_requested.connect(open_washer)
 	EventBus.room_change_requested.connect(func(_room): close())
 	get_viewport().gui_focus_changed.connect(_keep_focus_inside)
 	hide()
 	_resize_panel()
 
 func _keep_focus_inside(control: Control) -> void:
-	if visible and not is_ancestor_of(control) and not inspector.product_select.get_popup().visible:
+	if visible and not is_ancestor_of(control) and not _popup_visible():
 		close_button.grab_focus()
 
 func _resize_panel() -> void:
@@ -59,21 +65,42 @@ func _resize_panel() -> void:
 func open_slot(slot: int) -> void:
 	if GameManager.current_room != "foundry" or slot < 0 or slot >= Constants.SLOTS:
 		return
+	GameManager.select_machine(slot)
+	_open("foundry")
+
+func open_bin(bin_id: String) -> void:
+	if GameManager.current_room != "warehouse" or (bin_id != "goods" and not Constants.MATERIALS.has(bin_id)):
+		return
+	GameManager.select_bin(bin_id)
+	_open("warehouse")
+
+func open_washer() -> void:
+	if GameManager.current_room == "washer":
+		_open("washer")
+
+func _popup_visible() -> bool:
+	return active_room != "warehouse" and inspector.product_select.get_popup().visible
+
+func _open(room: String) -> void:
 	if not visible:
 		previous_focus = get_viewport().gui_get_focus_owner()
-	GameManager.select_machine(slot)
+	active_room = room
+	inspector = inspectors[room]
+	for content in inspectors.values():
+		content.visible = content == inspector
 	content_scroll.scroll_vertical = 0
 	show()
-	hud.machine_modal_open = true
+	hud.inspector_modal_open = true
 	_resize_panel()
 	close_button.grab_focus()
 
 func close() -> void:
 	if not visible:
 		return
-	inspector.product_select.get_popup().hide()
+	if active_room != "warehouse":
+		inspector.product_select.get_popup().hide()
 	hide()
-	hud.machine_modal_open = false
+	hud.inspector_modal_open = false
 	if is_instance_valid(previous_focus) and previous_focus.is_visible_in_tree():
 		previous_focus.grab_focus()
 	else:
@@ -88,7 +115,7 @@ func _input(event: InputEvent) -> void:
 	if not visible or not event is InputEventKey or not event.pressed or event.echo:
 		return
 	# PopupMenu owns its keyboard events, including the first Escape.
-	if inspector.product_select.get_popup().visible:
+	if _popup_visible():
 		return
 	if event.keycode == KEY_ESCAPE:
 		close()

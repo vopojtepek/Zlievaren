@@ -48,6 +48,4 @@ func _on_room_changed(room_name: String) -> void:
 		washer_hall.visible = (room_name == "washer")
 		cnc_hall.visible = (room_name == "cnc")
 		
-		warehouse_inspector.visible = (room_name == "warehouse")
-		washer_inspector.visible = (room_name == "washer")
 		cnc_inspector.visible = (room_name == "cnc")

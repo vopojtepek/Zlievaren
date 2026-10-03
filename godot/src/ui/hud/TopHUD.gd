@@ -9,7 +9,7 @@ var clock_label: Label
 var revenue_label: Label
 var btn_pause: Button
 var day_track: ProgressBar
-var machine_modal_open: bool = false
+var inspector_modal_open: bool = false
 
 func _label(parent: Node, text: String, font_size: int, color: String = "#e8f0ed") -> Label:
 	var l = Label.new()
@@ -91,7 +91,7 @@ func _ready() -> void:
 	_on_tick(GameManager.state, 0)
 
 func _unhandled_key_input(event: InputEvent) -> void:
-	if machine_modal_open:
+	if inspector_modal_open:
 		return
 	if not event is InputEventKey or not event.pressed or event.echo:
 		return
