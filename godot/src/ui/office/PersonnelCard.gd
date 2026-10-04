@@ -28,7 +28,7 @@ func configure(person: Dictionary, position: Dictionary, state: Dictionary, cand
 	body.add_theme_constant_override("separation", 10)
 	add_child(body)
 	label_into(body, "UCHÁDZAČ" if candidate else "PERSONÁLNA KARTA", 11, Color("766449"))
-	var header = HBoxContainer.new()
+	var header = BoxContainer.new()
 	header.add_theme_constant_override("separation", 12)
 	body.add_child(header)
 	portrait = Portrait.new()

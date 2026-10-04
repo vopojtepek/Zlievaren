@@ -1,5 +1,8 @@
 class_name OfficeView
 extends PanelContainer
+var display_mode: Node:
+	get:
+		return get_node('/root/DisplayMode')
 
 const PersonnelCard = preload("res://src/ui/office/PersonnelCard.gd")
 
@@ -25,7 +28,7 @@ const PersonnelCard = preload("res://src/ui/office/PersonnelCard.gd")
 @onready var missing_workers_list: VBoxContainer = $VBox/ScrollContent/ContentBox/TabOverview/MissingList
 @onready var employees_list: GridContainer = $VBox/ScrollContent/ContentBox/TabOverview/EmployeesGrid
 
-@onready var recruit_position_buttons: HBoxContainer = $VBox/ScrollContent/ContentBox/TabHire/RecruitHead/PositionScroll/PositionButtons
+@onready var recruit_position_buttons: GridContainer = $VBox/ScrollContent/ContentBox/TabHire/RecruitHead/PositionScroll/PositionButtons
 @onready var recruit_formula_label: Label = $VBox/ScrollContent/ContentBox/TabHire/RecruitHead/FormulaLabel
 @onready var recruit_shifts_list: VBoxContainer = $VBox/ScrollContent/ContentBox/TabHire/ShiftsList
 
@@ -72,7 +75,10 @@ func _connect_signals() -> void:
 
 func _ready() -> void:
 	$VBox/ScrollContent.resized.connect(_resize_personnel_grids)
+	recruit_position_buttons.set_meta("responsive_columns", true)
+	display_mode.mode_changed.connect(func(_mobile): _resize_personnel_grids())
 	employees_list.add_to_group("personnel_grids")
+	employees_list.set_meta("responsive_columns", true)
 	_connect_signals()
 	visibility_changed.connect(_on_visibility_changed)
 	
@@ -137,6 +143,7 @@ func _populate_recruit_positions() -> void:
 			button.tooltip_text = "Nábor · " + p.label
 			button.toggle_mode = true
 			button.custom_minimum_size = Vector2(116, 100)
+			button.set_meta("mobile_button_width", 116)
 			_style_position_icon(button, p.role)
 			button.pressed.connect(_on_recruit_position_selected.bind(cached_position_keys.size() - 1))
 			recruit_position_buttons.add_child(button)
@@ -292,7 +299,7 @@ func _update_overview_tab(active_employees: Array, force: bool = false) -> void:
 		vacancy_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 		vacancy_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		vacancy_scroll.follow_focus = true
-		var vacancy_row = HBoxContainer.new()
+		var vacancy_row = BoxContainer.new()
 		vacancy_row.add_theme_constant_override("separation", 8)
 		vacancy_scroll.add_child(vacancy_row)
 		missing_workers_list.add_child(vacancy_scroll)
@@ -308,7 +315,7 @@ func _update_overview_tab(active_employees: Array, force: bool = false) -> void:
 			style.set_content_margin_all(10 if e == null else 18)
 			card.add_theme_stylebox_override("panel", style)
 			
-			var card_box: BoxContainer = VBoxContainer.new() if e == null else HBoxContainer.new()
+			var card_box: BoxContainer = VBoxContainer.new() if e == null else BoxContainer.new()
 			card_box.add_theme_constant_override("separation", 16)
 			
 			var info_box = VBoxContainer.new()
@@ -326,7 +333,7 @@ func _update_overview_tab(active_employees: Array, force: bool = false) -> void:
 			else:
 				info_box.free()
 			
-			var actions_box: BoxContainer = VBoxContainer.new() if e == null else HBoxContainer.new()
+			var actions_box: BoxContainer = VBoxContainer.new() if e == null else BoxContainer.new()
 			actions_box.add_theme_constant_override("separation", 8)
 			var choices = FoundryEngine.overtime_choices(state, p.key)
 			for c in choices:
@@ -445,6 +452,7 @@ func _update_hire_tab(force: bool = false) -> void:
 			shift_box.add_child(occ_lbl)
 		else:
 			var cand_grid = GridContainer.new()
+			cand_grid.set_meta("responsive_columns", true)
 			cand_grid.add_to_group("personnel_grids")
 			cand_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			cand_grid.add_theme_constant_override("h_separation", 16)
@@ -493,7 +501,7 @@ func _update_payroll_tab(force: bool = false) -> void:
 		payroll_lines_table.add_child(empty_lbl)
 	else:
 		# Table Header
-		var header_row = HBoxContainer.new()
+		var header_row = BoxContainer.new()
 		var col1 = Label.new(); col1.text = "Pracovník"; col1.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var col2 = Label.new(); col2.text = "Riadna mzda"; col2.custom_minimum_size = Vector2(100, 0)
 		var col3 = Label.new(); col3.text = "Nadčas"; col3.custom_minimum_size = Vector2(100, 0)
@@ -502,7 +510,7 @@ func _update_payroll_tab(force: bool = false) -> void:
 		payroll_lines_table.add_child(header_row)
 		
 		for line in lines:
-			var row = HBoxContainer.new()
+			var row = BoxContainer.new()
 			var l1 = Label.new(); l1.text = line.name; l1.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			var l2 = Label.new(); l2.text = Format.cash(line.normal); l2.custom_minimum_size = Vector2(100, 0)
 			var l3 = Label.new(); l3.text = Format.cash(line.overtime); l3.custom_minimum_size = Vector2(100, 0)
@@ -551,9 +559,10 @@ func _update_payroll_tab(force: bool = false) -> void:
 			payroll_history_list.add_child(hist_card)
 
 func _resize_personnel_grids() -> void:
+	recruit_position_buttons.columns = 2 if display_mode.mobile else maxi(1, recruit_position_buttons.get_child_count())
 	# Read the viewport, so shrinking can remove columns despite grid minimum sizes.
 	var available = maxf(280, $VBox/ScrollContent.size.x - 24)
-	var count = maxi(1, int((available + 16) / 296))
+	var count = 1 if display_mode.mobile else maxi(1, int((available + 16) / 296))
 	for grid in get_tree().get_nodes_in_group("personnel_grids"):
 		if is_ancestor_of(grid):
 			grid.columns = count

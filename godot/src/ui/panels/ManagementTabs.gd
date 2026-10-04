@@ -21,10 +21,10 @@ var current_state: Dictionary = {}
 var _last_market_key: String = ""
 var _last_ledger_key: String = ""
 var extra_buttons: Dictionary = {}
-var stock_panel: HBoxContainer
-var development_panel: HBoxContainer
+var stock_panel: BoxContainer
+var development_panel: BoxContainer
 var _last_extra_key: String = ""
-var web_market: HBoxContainer
+var web_market: BoxContainer
 
 func _get_state() -> Dictionary:
 	if not current_state.is_empty():
@@ -72,10 +72,10 @@ func _ready() -> void:
 	market_panel.add_child(web_market)
 	custom_minimum_size = Vector2(0, 430)
 	add_theme_stylebox_override("panel", preload("res://src/ui/WebLayout.gd").panel_style("#162831", 22))
-	stock_panel = HBoxContainer.new()
+	stock_panel = BoxContainer.new()
 	stock_panel.add_theme_constant_override("separation", 24)
 	$VBox/Content.add_child(stock_panel)
-	development_panel = HBoxContainer.new()
+	development_panel = BoxContainer.new()
 	development_panel.add_theme_constant_override("separation", 16)
 	$VBox/Content.add_child(development_panel)
 	for entry in [["stock", "Sklady"], ["development", "Rozvoj"], ["office", "Kancelária"]]:
@@ -256,7 +256,7 @@ func _update_market(state: Dictionary, force: bool = false) -> void:
 			continue
 		var stock = state.raw.get(mat_id, 0)
 		
-		var row = HBoxContainer.new()
+		var row = BoxContainer.new()
 		row.add_theme_constant_override("separation", 12)
 		
 		var icon_rect = TextureRect.new()
@@ -322,7 +322,7 @@ func _update_market(state: Dictionary, force: bool = false) -> void:
 		var quote = FoundryEngine.quote(state, "goods:" + prod_id)
 		var stock = FoundryEngine.available(state, prod_id)
 		
-		var row = HBoxContainer.new()
+		var row = BoxContainer.new()
 		row.add_theme_constant_override("separation", 12)
 		
 		var icon_rect = TextureRect.new()
@@ -394,7 +394,7 @@ func _update_ledger(state: Dictionary, force: bool = false) -> void:
 		var start_idx = maxi(0, n - 40)
 		for i in range(n - 1, start_idx - 1, -1):
 			var entry = entries[i]
-			var row = HBoxContainer.new()
+			var row = BoxContainer.new()
 			row.add_theme_constant_override("separation", 12)
 			
 			var badge = Label.new()

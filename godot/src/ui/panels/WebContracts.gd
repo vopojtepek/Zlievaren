@@ -1,4 +1,7 @@
 extends VBoxContainer
+var display_mode: Node:
+	get:
+		return get_node('/root/DisplayMode')
 ## Persistent cards: ticks update values without replacing focused buttons.
 signal command_requested(command: Dictionary)
 
@@ -47,12 +50,13 @@ func _ready() -> void:
 	label(self, "Ponuku prijmi do 12 herných hodín (90 s). Od prijatia máš 18 hodín (135 s) na dodanie. Včasné splnenie: vzťah +10, reputácia +2. Zmeškanie: vzťah −15, reputácia −1. Neprijatá ponuka vyprší bez postihu.")
 	active_label = label(self, "Aktívne 0 / 2", 13, "#d4e9bf")
 	company_grid = GridContainer.new()
+	company_grid.set_meta("responsive_columns", true)
 	company_grid.add_theme_constant_override("h_separation", 12)
 	company_grid.add_theme_constant_override("v_separation", 12)
 	add_child(company_grid)
 	for buyer in Constants.COMPANIES:
 		var box = card(company_grid, "#20353e", 15)
-		var heading = HBoxContainer.new()
+		var heading = BoxContainer.new()
 		box.add_child(heading)
 		var title = label(heading, buyer, 13, "#e9eee5")
 		var score = label(heading, "", 18)
@@ -70,10 +74,12 @@ func _ready() -> void:
 		companies[buyer] = {"title": title, "score": score, "relationship": relationship, "meter": meter, "terms": label(box, "", 11), "history": label(box, "", 10)}
 	label(self, "Vzťah −100 až +100. Pri maximálnej dôvere až 3× väčšie zákazky a +30 % ceny. Bonus sa počíta zo základných odmien znížených o 25 %. Nové ponuky prichádzajú o polnoci; vydané podmienky sa nemenia.")
 	contract_grid = GridContainer.new()
+	contract_grid.set_meta("responsive_columns", true)
 	contract_grid.add_theme_constant_override("h_separation", 16)
 	contract_grid.add_theme_constant_override("v_separation", 16)
 	add_child(contract_grid)
 	resized.connect(_resize)
+	display_mode.mode_changed.connect(func(_mobile): _resize())
 	get_viewport().size_changed.connect(_resize)
 	_resize()
 
@@ -81,17 +87,17 @@ func _resize() -> void:
 	if contract_grid == null:
 		return
 	var width = get_viewport_rect().size.x
-	contract_grid.columns = 1 if width <= 620 else (2 if width <= 850 else 3)
-	company_grid.columns = maxi(1, mini(Constants.COMPANIES.size(), int((size.x + 12) / 197)))
+	contract_grid.columns = 1 if display_mode.mobile or width <= 620 else (2 if width <= 850 else 3)
+	company_grid.columns = 1 if display_mode.mobile else maxi(1, mini(Constants.COMPANIES.size(), int((size.x + 12) / 197)))
 
 func _create_contract(id: String) -> Dictionary:
 	var box = card(contract_grid, "#203943", 19)
-	var heading = HBoxContainer.new()
+	var heading = BoxContainer.new()
 	box.add_child(heading)
 	var buyer = label(heading, "", 10)
 	var status = label(heading, "", 12, "#d4e9bf")
 	status.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	var product_row = HBoxContainer.new()
+	var product_row = BoxContainer.new()
 	product_row.add_theme_constant_override("separation", 12)
 	box.add_child(product_row)
 	var icon = TextureRect.new()

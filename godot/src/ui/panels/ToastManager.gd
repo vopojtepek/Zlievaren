@@ -5,7 +5,14 @@ extends Control
 @onready var container: VBoxContainer = $VBoxContainer
 
 func _ready() -> void:
+	get_viewport().size_changed.connect(_resize_toasts)
+	_resize_toasts()
 	EventBus.toast_requested.connect(_on_toast_requested)
+
+func _resize_toasts() -> void:
+	var half = minf(300, maxf(0, get_viewport_rect().size.x / 2 - 16))
+	container.offset_left = -half
+	container.offset_right = half
 
 func _on_toast_requested(message: String, is_error: bool) -> void:
 	if message.is_empty():

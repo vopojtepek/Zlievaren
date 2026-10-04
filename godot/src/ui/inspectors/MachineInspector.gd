@@ -35,7 +35,8 @@ var available_product_ids: Array = ["iron_pipe", "ring", "steel_pipe", "bronze_b
 var machine_tabs: Array[Button] = []
 
 func _ready() -> void:
-	var tabs = HBoxContainer.new()
+	var tabs = BoxContainer.new()
+	tabs.set_meta("keep_horizontal", true)
 	$VBox.add_child(tabs)
 	$VBox.move_child(tabs, 0)
 	for i in range(Constants.SLOTS):

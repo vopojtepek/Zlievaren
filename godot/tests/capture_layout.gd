@@ -45,15 +45,14 @@ func capture() -> void:
 		root.size = Vector2i(width, 1000)
 		await shot("office-vacancies-%d" % width)
 		var vacancies = main.office_view.missing_workers_list.get_node("VacancyScroll") as ScrollContainer
-		var row = vacancies.get_child(0) as HBoxContainer
+		var row = vacancies.get_child(0) as BoxContainer
 		check(vacancies.get_global_rect().end.x <= width, "Vacancy scroll fits viewport")
 		check(row.get_child_count() > 1, "Several vacancies are shown")
-		check(row.get_child(0).position.y == row.get_child(1).position.y, "Vacancies share one row")
+		if width == 1440:
+			check(row.get_child(0).position.y == row.get_child(1).position.y, "Desktop vacancies share one row")
 		if width == 800:
-			check(vacancies.get_h_scroll_bar().visible, "Narrow viewport offers horizontal scrolling")
-			vacancies.scroll_horizontal = 1000
-			await settle()
-			check(vacancies.scroll_horizontal > 0, "Vacancy row can be scrolled")
+			check(row.vertical, "Mobile vacancies stack vertically")
+			check(not vacancies.get_h_scroll_bar().visible, "Mobile vacancies need no horizontal scrolling")
 	root.size = Vector2i(1440, 1000)
 	for tab in ["stock", "market", "contracts", "development"]:
 		main.management_tabs._switch_tab(tab)

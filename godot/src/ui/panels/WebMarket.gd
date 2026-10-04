@@ -1,6 +1,16 @@
-extends HBoxContainer
+extends BoxContainer
+var display_mode: Node:
+	get:
+		return get_node('/root/DisplayMode')
 ## Web-style quote table and one persistent trade ticket (inputs keep focus on ticks).
 const UI = preload("res://src/ui/WebLayout.gd")
+const MATERIAL_ICONS = {
+	"iron": preload("res://assets/ui/materials/iron.svg"),
+	"steel": preload("res://assets/ui/materials/steel.svg"),
+	"copper": preload("res://assets/ui/materials/copper.svg"),
+	"tin": preload("res://assets/ui/materials/tin.svg"),
+	"zinc": preload("res://assets/ui/materials/zinc.svg"),
+}
 var selected: String = "raw:iron"
 var category: String = "raw"
 var rows: Dictionary = {}
@@ -33,13 +43,16 @@ func _button(parent: Node, text: String, callback: Callable) -> Button:
 	return b
 
 func _ready() -> void:
+	set_meta("responsive_orientation", true)
 	add_theme_constant_override("separation", 22)
+	resized.connect(_resize_market)
+	display_mode.mode_changed.connect(func(_mobile): _resize_market())
 	var left = VBoxContainer.new()
 	left.size_flags_horizontal = SIZE_EXPAND_FILL
 	add_child(left)
 	var heading = _label(left, "Burza surovín a výrobkov", 25)
 	heading.add_theme_font_override("font", preload("res://assets/fonts/BarlowCondensed-SemiBold.ttf"))
-	var categories = HBoxContainer.new()
+	var categories = BoxContainer.new()
 	left.add_child(categories)
 	_button(categories, "Suroviny", func(): _category("raw"))
 	_button(categories, "Výrobky", func(): _category("goods"))
@@ -69,7 +82,7 @@ func _ready() -> void:
 	quantity.max_value = 100000
 	quantity.value = 10
 	form.add_child(quantity)
-	var actions = HBoxContainer.new()
+	var actions = BoxContainer.new()
 	form.add_child(actions)
 	buy = _button(actions, "Nakúpiť", func(): _trade("buy"))
 	sell = _button(actions, "Predať", func(): _trade("sell"))
@@ -90,6 +103,13 @@ func _ready() -> void:
 	)
 	quantity.value_changed.connect(func(_v): refresh(GameManager.state))
 	_category("raw")
+	_resize_market()
+
+func _resize_market() -> void:
+	vertical = display_mode.mobile or size.x < 850
+	if table != null and table.get_child_count() > 0:
+		table.get_child(0).visible = not display_mode.mobile
+		refresh(GameManager.state)
 
 func _category(id: String) -> void:
 	category = id
@@ -97,7 +117,7 @@ func _category(id: String) -> void:
 	for c in table.get_children():
 		table.remove_child(c)
 		c.queue_free()
-	var head = HBoxContainer.new()
+	var head = BoxContainer.new()
 	table.add_child(head)
 	var title = _label(head, "POLOŽKA")
 	title.size_flags_horizontal = SIZE_EXPAND_FILL
@@ -110,7 +130,7 @@ func _category(id: String) -> void:
 		if id == "goods" and not FoundryEngine.saleable(key):
 			continue
 		var item: String = id + ":" + key
-		var row = HBoxContainer.new()
+		var row = BoxContainer.new()
 		table.add_child(row)
 		var b = _button(row, items[key].name, func():
 			selected = item
@@ -119,6 +139,15 @@ func _category(id: String) -> void:
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		b.size_flags_horizontal = SIZE_EXPAND_FILL
 		b.clip_text = true
+		if id == "raw":
+			b.icon = MATERIAL_ICONS[key]
+			b.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
+			b.add_theme_constant_override("icon_max_width", 28)
+			b.add_theme_constant_override("h_separation", 8)
+			for icon_state in ["normal", "hover", "pressed", "hover_pressed", "focus", "disabled"]:
+				b.add_theme_color_override("icon_" + icon_state + "_color", Color.WHITE)
+			for style_state in ["normal", "hover", "pressed", "hover_pressed"]:
+				b.add_theme_stylebox_override(style_state, b.get_theme_stylebox(style_state).duplicate())
 		var values: Array[Label] = []
 		for i in range(3):
 			var l = _label(row, "")
@@ -136,6 +165,7 @@ func _trade(side: String) -> void:
 func refresh(s: Dictionary) -> void:
 	if rows.is_empty():
 		return
+	table.get_child(0).visible = not display_mode.mobile
 	for item in rows:
 		var q = FoundryEngine.quote(s, item)
 		var raw = item.begins_with("raw:")
@@ -145,7 +175,21 @@ func refresh(s: Dictionary) -> void:
 		labels[0].text = Format.cash(q.ask) if raw else "—"
 		labels[1].text = Format.cash(q.bid)
 		labels[2].text = "%d %s" % [available, "kg" if raw else "ks"]
-		rows[item].button.modulate = Color("#ffa75f") if item == selected else Color.WHITE
+		if display_mode.mobile:
+			labels[0].text = "Nákup: " + labels[0].text
+			labels[1].text = "Výkup: " + labels[1].text
+			labels[2].text = "Zásoby: " + labels[2].text
+		var button: Button = rows[item].button
+		if raw:
+			var accent = Color("#ffa75f") if item == selected else Color("#e8f0ed")
+			for font_state in ["font_color", "font_hover_color", "font_pressed_color", "font_hover_pressed_color", "font_focus_color"]:
+				button.add_theme_color_override(font_state, accent)
+			for style_state in ["normal", "hover", "pressed", "hover_pressed"]:
+				var style = button.get_theme_stylebox(style_state) as StyleBoxFlat
+				if style:
+					style.border_color = Color("#ffa75f") if item == selected else Color("#45606c")
+		else:
+			button.modulate = Color("#ffa75f") if item == selected else Color.WHITE
 	var id = selected.split(":")[1]
 	var raw = category == "raw"
 	var q = FoundryEngine.quote(s, selected)
@@ -167,7 +211,7 @@ func refresh(s: Dictionary) -> void:
 			orders.remove_child(child)
 			child.queue_free()
 		for order in s.limits:
-			var row = HBoxContainer.new()
+			var row = BoxContainer.new()
 			orders.add_child(row)
 			_label(row, "%s · %d ks · min. %d ₵" % [Constants.PRODUCTS[order.product].name, order.quantity, order.minPrice])
 			_button(row, "Zrušiť", func():

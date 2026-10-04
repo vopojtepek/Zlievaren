@@ -88,7 +88,7 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Výrobok:"
 
-[node name="ProductHBox" type="HBoxContainer" parent="VBox/OwnedControls/ProductBox"]
+[node name="ProductHBox" type="BoxContainer" parent="VBox/OwnedControls/ProductBox"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
@@ -123,7 +123,7 @@ text = "Riziko nepodarku: 10.0 %"
 [node name="TempBox" type="VBoxContainer" parent="VBox/OwnedControls"]
 layout_mode = 2
 
-[node name="HBox" type="HBoxContainer" parent="VBox/OwnedControls/TempBox"]
+[node name="HBox" type="BoxContainer" parent="VBox/OwnedControls/TempBox"]
 layout_mode = 2
 
 [node name="Label" type="Label" parent="VBox/OwnedControls/TempBox/HBox"]

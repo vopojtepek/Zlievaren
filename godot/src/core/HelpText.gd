@@ -26,7 +26,13 @@ Počítaj s výplatami. Platy závisia od zmluvy každého pracovníka. Nočná 
 Jeden celý deň trvá presne 180 sekúnd aktívnej hry. Pauza, návod a skryté okno zastavia čas. Smeny sa menia o 06:00, 14:00 a 22:00; rozpracovanú panvu dokončí pôvodný robotník. Ide o zjednodušený herný model výroby a obchodovania.
 
 1 – 6 výber stroja · Medzerník akcia · P pauza"""
-const NEWS = """3. 10. 2026 · Godot: rozloženie podľa webovej verzie
+const NEWS = """4. 10. 2026 · Mobilné rozhranie
+Vedľa Novej hry je prepínač mobilného a desktopového zobrazenia. Ručná voľba sa pamätá aj po novej hre. Mobilné rozhranie ponúka dotykové ovládanie, zalamované panely a samostatné tlačidlá na výber zariadení a skladov.
+
+3. 10. 2026 · Nová hra
+Tlačidlo Nová hra je vedľa Noviniek v hornej lište. Reset postupu vyžaduje potvrdenie.
+
+3. 10. 2026 · Godot: rozloženie podľa webovej verzie
 
 Responzívne rozhranie, bočné ovládanie, burza, sklady a rozvoj. Doplnené animácie panvy, panvára, pece, pary, iskier a čistenia.
 

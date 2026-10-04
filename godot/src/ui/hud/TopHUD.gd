@@ -1,5 +1,8 @@
 class_name TopHUD
 extends PanelContainer
+var display_mode: Node:
+	get:
+		return get_node('/root/DisplayMode')
 
 const DISPLAY = preload("res://assets/fonts/BarlowCondensed-SemiBold.ttf")
 var money_label: Label
@@ -10,6 +13,8 @@ var revenue_label: Label
 var btn_pause: Button
 var day_track: ProgressBar
 var inspector_modal_open: bool = false
+var mode_button: Button
+var header_row: BoxContainer
 
 func _label(parent: Node, text: String, font_size: int, color: String = "#e8f0ed") -> Label:
 	var l = Label.new()
@@ -21,6 +26,7 @@ func _label(parent: Node, text: String, font_size: int, color: String = "#e8f0ed
 
 func _stat(parent: Node, title: String) -> Label:
 	var box = VBoxContainer.new()
+	box.size_flags_horizontal = SIZE_EXPAND_FILL
 	box.alignment = BoxContainer.ALIGNMENT_CENTER
 	parent.add_child(box)
 	_label(box, title, 11, "#9ab1b6")
@@ -40,16 +46,23 @@ func _ready() -> void:
 	style.content_margin_top = 12
 	style.content_margin_bottom = 12
 	add_theme_stylebox_override("panel", style)
-	var row = HBoxContainer.new()
+	var row = BoxContainer.new()
+	header_row = row
 	row.add_theme_constant_override("separation", 28)
 	add_child(row)
-	var brand = _label(row, "◉  ŽERAVÁ\n    ZLIEVAREŇ", 25)
+	var identity = BoxContainer.new()
+	identity.set_meta("keep_horizontal", true)
+	identity.add_theme_constant_override("separation", 20)
+	row.add_child(identity)
+	var brand = _label(identity, "◉  ŽERAVÁ\n    ZLIEVAREŇ", 25)
+	brand.size_flags_horizontal = SIZE_EXPAND_FILL
 	brand.add_theme_font_override("font", DISPLAY)
-	row.add_child(VSeparator.new())
+	identity.add_child(VSeparator.new())
 	var clock_box = VBoxContainer.new()
+	clock_box.set_meta("responsive_minimum", true)
 	clock_box.custom_minimum_size.x = 150
 	clock_box.alignment = BoxContainer.ALIGNMENT_CENTER
-	row.add_child(clock_box)
+	identity.add_child(clock_box)
 	day_label = _label(clock_box, "DEŇ 1 · TÝŽDEŇ 1", 11, "#9ab1b6")
 	clock_label = _label(clock_box, "06:00", 31)
 	clock_label.add_theme_font_override("font", DISPLAY)
@@ -60,35 +73,71 @@ func _ready() -> void:
 	var spacer = Control.new()
 	spacer.size_flags_horizontal = SIZE_EXPAND_FILL
 	row.add_child(spacer)
-	money_label = _stat(row, "KAPITÁL")
+	var stats = BoxContainer.new()
+	stats.set_meta("keep_horizontal", true)
+	stats.size_flags_horizontal = SIZE_EXPAND_FILL
+	stats.add_theme_constant_override("separation", 20)
+	row.add_child(stats)
+	money_label = _stat(stats, "KAPITÁL")
 	money_label.add_theme_color_override("font_color", Color("#ffa75f"))
-	revenue_label = _stat(row, "TRŽBY")
-	rep_label = _stat(row, "REPUTÁCIA")
+	revenue_label = _stat(stats, "TRŽBY")
+	rep_label = _stat(stats, "REPUTÁCIA")
+	var controls = BoxContainer.new()
+	controls.set_meta("keep_horizontal", true)
+	controls.size_flags_horizontal = SIZE_EXPAND_FILL
+	controls.add_theme_constant_override("separation", 8)
+	row.add_child(controls)
 	btn_pause = Button.new()
 	btn_pause.text = "Ⅱ"
 	btn_pause.tooltip_text = "Pauza (P)"
 	btn_pause.custom_minimum_size = Vector2(39, 39)
 	btn_pause.size_flags_vertical = SIZE_SHRINK_CENTER
+	btn_pause.size_flags_horizontal = SIZE_EXPAND_FILL
 	btn_pause.pressed.connect(_on_pause_pressed)
-	row.add_child(btn_pause)
+	controls.add_child(btn_pause)
 	for entry in [["?", "Ako hrať", preload("res://src/core/HelpText.gd").HELP], ["Novinky", "Novinky", preload("res://src/core/HelpText.gd").NEWS]]:
 		var b = Button.new()
 		b.text = entry[0]
 		b.tooltip_text = entry[1]
 		b.custom_minimum_size.y = 39
 		b.size_flags_vertical = SIZE_SHRINK_CENTER
+		b.size_flags_horizontal = SIZE_EXPAND_FILL
 		var title: String = entry[1]
 		var body: String = entry[2]
 		b.pressed.connect(func(): _show_info(title, body))
-		row.add_child(b)
+		controls.add_child(b)
+	var new_game_button = Button.new()
+	var game_actions = BoxContainer.new()
+	game_actions.set_meta("keep_horizontal", true)
+	row.add_child(game_actions)
+	new_game_button.text = "Nová hra"
+	new_game_button.custom_minimum_size.y = 39
+	new_game_button.size_flags_vertical = SIZE_SHRINK_CENTER
+	new_game_button.size_flags_horizontal = SIZE_EXPAND_FILL
+	new_game_button.pressed.connect(_on_new_game_pressed)
+	game_actions.add_child(new_game_button)
+	mode_button = Button.new()
+	mode_button.custom_minimum_size.y = 39
+	mode_button.size_flags_vertical = SIZE_SHRINK_CENTER
+	mode_button.size_flags_horizontal = SIZE_EXPAND_FILL
+	mode_button.pressed.connect(func(): display_mode.set_mobile(not display_mode.mobile))
+	game_actions.add_child(mode_button)
+	display_mode.mode_changed.connect(func(_mobile): _update_display())
+	_update_display()
 	EventBus.tick_processed.connect(_on_tick)
 	EventBus.pause_toggled.connect(func(paused): btn_pause.text = "▶" if paused else "Ⅱ")
 	resized.connect(func():
 		if revenue_label != null:
-			revenue_label.get_parent().visible = size.x > 1000
-			rep_label.get_parent().visible = size.x > 850
+			revenue_label.get_parent().visible = display_mode.mobile or size.x > 1000
+			rep_label.get_parent().visible = display_mode.mobile or size.x > 850
 	)
 	_on_tick(GameManager.state, 0)
+
+func _update_display() -> void:
+	header_row.add_theme_constant_override("separation", 12 if display_mode.mobile else 28)
+	mode_button.text = "Desktopové zobrazenie" if display_mode.mobile else "Mobilné zobrazenie"
+	revenue_label.get_parent().visible = display_mode.mobile or size.x > 1000
+	rep_label.get_parent().visible = display_mode.mobile or size.x > 850
 
 func _unhandled_key_input(event: InputEvent) -> void:
 	if inspector_modal_open:
@@ -149,3 +198,30 @@ func _show_info(title: String, body: String) -> void:
 		dialog.queue_free()
 	)
 	dialog.popup_centered_clamped(Vector2i(560, 720))
+	dialog.get_ok_button().custom_minimum_size = Vector2(44, 44)
+
+func _on_new_game_pressed() -> void:
+	var was_paused = SimulationClock.is_paused
+	EventBus.pause_toggled.emit(true)
+	var dialog = ConfirmationDialog.new()
+	dialog.title = "Nová hra"
+	dialog.dialog_text = "Začať novú hru? Aktuálny uložený postup sa prepíše."
+	dialog.ok_button_text = "Začať novú hru"
+	dialog.cancel_button_text = "Zrušiť"
+	add_child(dialog)
+	dialog.confirmed.connect(func():
+		GameManager.new_game()
+		SaveManager.save_game()
+		EventBus.tick_processed.emit(GameManager.state, 0.0)
+		EventBus.pause_toggled.emit(false)
+		dialog.queue_free()
+	)
+	dialog.canceled.connect(func():
+		EventBus.pause_toggled.emit(was_paused)
+		dialog.queue_free()
+	)
+	dialog.get_label().autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	dialog.get_label().custom_minimum_size.x = mini(280, int(get_viewport_rect().size.x - 64))
+	dialog.get_ok_button().custom_minimum_size.y = 44
+	dialog.get_cancel_button().custom_minimum_size.y = 44
+	dialog.popup_centered_clamped(Vector2i(320, 200))

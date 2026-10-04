@@ -16,7 +16,7 @@ func _build_ui() -> void:
 		child.queue_free()
 		
 	for i in range(7):
-		var row = HBoxContainer.new()
+		var row = BoxContainer.new()
 		row.name = "Row_%d" % i
 		
 		var name_lbl = Label.new()
