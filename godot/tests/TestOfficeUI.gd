@@ -18,6 +18,7 @@ func run_all(tree: SceneTree = null) -> bool:
 	_tree = tree
 	print("--- Running TestOfficeUI ---")
 	test_office_initialization_and_positions()
+	test_employee_position_filter()
 	test_hire_buttons_stability_under_ticks()
 	test_hire_employee_click_and_state_update()
 	test_navigation_from_overview_select_candidate()
@@ -75,6 +76,53 @@ func test_office_initialization_and_positions() -> void:
 	n += 3
 	_cleanup(office)
 	print("OK office positions discovered and populated in dropdown")
+
+func test_employee_position_filter() -> void:
+	var s = FoundryEngine.fresh()
+	var office = _create_office(s)
+	assert_eq(office.employee_position_key, "ladle:-1:0", "Default employee filter is ladle")
+	assert_true(office.employee_empty_label.visible, "Empty position displays prompt")
+	assert_eq(office.employee_empty_label.text, "Vyber pozíciu zamestnancov", "Exact empty text")
+	assert_eq(office.employee_position_buttons.get_child_count(), office.recruit_position_buttons.get_child_count(), "Same positions as recruitment")
+	for i in range(office.employee_position_buttons.get_child_count()):
+		var button = office.employee_position_buttons.get_child(i)
+		var recruit = office.recruit_position_buttons.get_child(i)
+		assert_eq(button.text, recruit.text, "Same position labels and order")
+		assert_eq(button.icon, recruit.icon, "Same position icons")
+		if button.get_meta("employee_position") == "furnace:-1:0":
+			button.emit_signal("pressed")
+			assert_true(button.button_pressed, "Clicked filter highlighted")
+	for crew in range(3):
+		var key = FoundryEngine.position_key("furnace", crew)
+		var candidate = s.hr.candidates[key][0]
+		FoundryEngine.perform(s, {"type": "personnel", "action": "hire", "position": key, "candidateId": candidate.id})
+	office._update_view()
+	assert_eq(office.employees_list.get_child_count(), 3, "Includes furnace employees from all shifts only")
+	assert_true(not office.employee_empty_label.visible, "Prompt hidden for populated list")
+	assert_eq(office.recruit_position_key, "ladle:-1:0", "Recruitment selection remains independent")
+	office._switch_tab("hire")
+	office._switch_tab("overview")
+	assert_eq(office.employee_position_key, "furnace:-1:0", "Selection persists across tabs")
+	office.employees_list.get_child(0).action_button.emit_signal("pressed")
+	assert_eq(office.employees_list.get_child_count(), 2, "Dismissal refreshes filtered list")
+	s.machines[1] = s.machines[0].duplicate(true)
+	for slot in range(2):
+		var key = FoundryEngine.position_key("operator", 0, slot)
+		for position in FoundryEngine.positions(s):
+			if position.key == key and not s.hr.candidates.has(key):
+				FoundryEngine.make_candidates(s, position)
+		var candidate = s.hr.candidates[key][0]
+		FoundryEngine.perform(s, {"type": "personnel", "action": "hire", "position": key, "candidateId": candidate.id})
+		office.employee_position_key = key
+		office._update_view()
+		assert_eq(office.employees_list.get_child_count(), 1, "Each machine operator filtered separately")
+	office.employee_position_key = ""
+	office._update_view()
+	assert_eq(office.employees_list.get_child_count(), 0, "No selection shows no cards")
+	assert_true(office.employee_empty_label.visible, "No selection displays prompt")
+	n += 15
+	_cleanup(office)
+	print("OK employee position filters, empty prompt, hiring, dismissal and independent selection")
 
 func test_hire_buttons_stability_under_ticks() -> void:
 	var s = FoundryEngine.fresh()
@@ -244,6 +292,7 @@ func test_overtime_calling() -> void:
 func test_dismiss_employee() -> void:
 	var s = FoundryEngine.fresh()
 	var office = _create_office(s)
+	office.employee_position_key = "foreman:-1:0"
 	office._switch_tab("overview")
 	
 	var dismiss_btns = []

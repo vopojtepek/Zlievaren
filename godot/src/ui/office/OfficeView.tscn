@@ -210,6 +210,23 @@ theme_override_colors/font_color = Color(0.722, 0.820, 0.835, 1)
 theme_override_font_sizes/font_size = 15
 text = "Zoznam zamestnancov"
 
+[node name="EmployeePositionScroll" type="ScrollContainer" parent="VBox/ScrollContent/ContentBox/TabOverview"]
+custom_minimum_size = Vector2(0, 120)
+layout_mode = 2
+vertical_scroll_mode = 0
+
+[node name="PositionButtons" type="GridContainer" parent="VBox/ScrollContent/ContentBox/TabOverview/EmployeePositionScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+columns = 10
+
+[node name="EmployeeEmptyLabel" type="Label" parent="VBox/ScrollContent/ContentBox/TabOverview"]
+layout_mode = 2
+text = "Vyber pozíciu zamestnancov"
+autowrap_mode = 2
+
 [node name="EmployeesGrid" type="GridContainer" parent="VBox/ScrollContent/ContentBox/TabOverview"]
 layout_mode = 2
 theme_override_constants/h_separation = 16

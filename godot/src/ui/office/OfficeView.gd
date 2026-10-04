@@ -27,6 +27,8 @@ const PersonnelCard = preload("res://src/ui/office/PersonnelCard.gd")
 @onready var shift_title_label: Label = $VBox/ScrollContent/ContentBox/TabOverview/ShiftTitle
 @onready var missing_workers_list: VBoxContainer = $VBox/ScrollContent/ContentBox/TabOverview/MissingList
 @onready var employees_list: GridContainer = $VBox/ScrollContent/ContentBox/TabOverview/EmployeesGrid
+@onready var employee_position_buttons: GridContainer = $VBox/ScrollContent/ContentBox/TabOverview/EmployeePositionScroll/PositionButtons
+@onready var employee_empty_label: Label = $VBox/ScrollContent/ContentBox/TabOverview/EmployeeEmptyLabel
 
 @onready var recruit_position_buttons: GridContainer = $VBox/ScrollContent/ContentBox/TabHire/RecruitHead/PositionScroll/PositionButtons
 @onready var recruit_formula_label: Label = $VBox/ScrollContent/ContentBox/TabHire/RecruitHead/FormulaLabel
@@ -37,6 +39,7 @@ const PersonnelCard = preload("res://src/ui/office/PersonnelCard.gd")
 
 var active_tab: String = "overview"
 var recruit_position_key: String = "ladle:-1:0"
+var employee_position_key: String = "ladle:-1:0"
 var cached_position_keys: Array = []
 var current_state: Dictionary = {}
 var _last_overview_key: String = ""
@@ -76,6 +79,7 @@ func _connect_signals() -> void:
 func _ready() -> void:
 	$VBox/ScrollContent.resized.connect(_resize_personnel_grids)
 	recruit_position_buttons.set_meta("responsive_columns", true)
+	employee_position_buttons.set_meta("responsive_columns", true)
 	display_mode.mode_changed.connect(func(_mobile): _resize_personnel_grids())
 	employees_list.add_to_group("personnel_grids")
 	employees_list.set_meta("responsive_columns", true)
@@ -160,6 +164,37 @@ func _populate_recruit_positions() -> void:
 		if not found_match:
 			recruit_position_key = cached_position_keys[0]
 	_sync_position_selection()
+	_populate_employee_positions(positions)
+
+func _populate_employee_positions(positions: Array) -> void:
+	for child in employee_position_buttons.get_children():
+		employee_position_buttons.remove_child(child)
+		child.queue_free()
+	for p in positions:
+		if p.crew != 0:
+			continue
+		var button = Button.new()
+		button.text = p.label
+		button.tooltip_text = "Zamestnanci · " + p.label
+		button.toggle_mode = true
+		button.custom_minimum_size = Vector2(116, 100)
+		button.set_meta("mobile_button_width", 116)
+		button.set_meta("employee_position", p.key)
+		_style_position_icon(button, p.role)
+		var position_key: String = p.key
+		button.pressed.connect(func():
+			employee_position_key = position_key
+			_update_view(true)
+		)
+		employee_position_buttons.add_child(button)
+	_sync_employee_position_selection()
+	_resize_personnel_grids()
+
+func _sync_employee_position_selection() -> void:
+	for button in employee_position_buttons.get_children():
+		var selected: bool = button.get_meta("employee_position") == employee_position_key
+		button.set_pressed_no_signal(selected)
+		button.modulate = Color("f4ce88") if selected else Color.WHITE
 
 func _style_position_icon(button: Button, role: String) -> void:
 	var icons = {"ladle": "worker_operator", "furnace": "worker_furnace", "warehouse": "worker_storekeeper", "washer": "worker_washer", "foreman": "foreman_miso", "operator": "worker_operator"}
@@ -267,9 +302,9 @@ func _update_overview_tab(active_employees: Array, force: bool = false) -> void:
 	shift_title_label.text = "Aktuálna smena · %s (%s)" % [crew_info.shift, crew_info.hours]
 	
 	var paused = _is_paused()
-	var overview_key = "%d:%d:%d:%d:%s:%d" % [
+	var overview_key = "%d:%d:%d:%d:%s:%d:%s" % [
 		state.get("revision", 0), cur_shift, active_employees.size(),
-		state.hr.covers.size(), str(paused), int(state.money)
+		state.hr.covers.size(), str(paused), int(state.money), employee_position_key
 	]
 	if not force and overview_key == _last_overview_key:
 		return
@@ -377,10 +412,14 @@ func _update_overview_tab(active_employees: Array, force: bool = false) -> void:
 		vacancy_scroll.set_deferred("scroll_horizontal", scroll_position)
 			
 	# Active employees grid
+	_sync_employee_position_selection()
 	for child in employees_list.get_children():
 		employees_list.remove_child(child)
 		child.queue_free()
+	var selected_parts = employee_position_key.split(":")
 	for e in active_employees:
+		if selected_parts.size() < 2 or e.role != selected_parts[0] or int(e.slot) != int(selected_parts[1]):
+			continue
 		var position = {"label": e.position, "hours": "", "role": e.role}
 		for pos in positions:
 			if pos.key == e.position:
@@ -394,6 +433,7 @@ func _update_overview_tab(active_employees: Array, force: bool = false) -> void:
 			_update_view(true)
 		)
 		employees_list.add_child(card)
+	employee_empty_label.visible = employees_list.get_child_count() == 0
 	_resize_personnel_grids()
 
 func _update_hire_tab(force: bool = false) -> void:
@@ -560,6 +600,7 @@ func _update_payroll_tab(force: bool = false) -> void:
 
 func _resize_personnel_grids() -> void:
 	recruit_position_buttons.columns = 2 if display_mode.mobile else maxi(1, recruit_position_buttons.get_child_count())
+	employee_position_buttons.columns = 2 if display_mode.mobile else maxi(1, employee_position_buttons.get_child_count())
 	# Read the viewport, so shrinking can remove columns despite grid minimum sizes.
 	var available = maxf(280, $VBox/ScrollContent.size.x - 24)
 	var count = 1 if display_mode.mobile else maxi(1, int((available + 16) / 296))
