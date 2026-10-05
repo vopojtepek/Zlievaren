@@ -54,7 +54,7 @@ func capture() -> void:
 			check(row.vertical, "Mobile vacancies stack vertically")
 			check(not vacancies.get_h_scroll_bar().visible, "Mobile vacancies need no horizontal scrolling")
 	root.size = Vector2i(1440, 1000)
-	for tab in ["stock", "market", "contracts", "development"]:
+	for tab in ["stock", "contracts", "development"]:
 		main.management_tabs._switch_tab(tab)
 		await settle()
 		layout.scroll.scroll_vertical = 2000

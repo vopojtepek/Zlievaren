@@ -1,5 +1,7 @@
 extends Node
 
+var tutorial_hold: bool = false
+var tutorial_active: bool = false
 var is_paused: bool = false
 var time_scale: float = 1.0
 
@@ -9,7 +11,7 @@ func _ready() -> void:
 		eb.pause_toggled.connect(_on_pause_toggled)
 
 func _physics_process(delta: float) -> void:
-	if is_paused:
+	if is_paused or tutorial_hold:
 		return
 	var gm = get_node_or_null("/root/GameManager")
 	if gm == null:

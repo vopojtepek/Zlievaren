@@ -21,6 +21,7 @@ var payroll: Label
 var goal_title: Label
 var goal_value: Label
 var goal_bar: ProgressBar
+var warehouse_market: PanelContainer
 var shift_cards: Array[Button] = []
 var nav_buttons: Dictionary = {}
 var pause_overlay: PanelContainer
@@ -231,6 +232,11 @@ func build(root: Node) -> void:
 	goal_bar.show_percentage = false
 	goal_bar.custom_minimum_size.y = 5
 	gp.add_child(goal_bar)
+	warehouse_market = PanelContainer.new()
+	warehouse_market.name = "WarehouseMarket"
+	warehouse_market.add_theme_stylebox_override("panel", panel_style("#162831", 16))
+	scene_info.add_child(warehouse_market)
+	warehouse_market.add_child(load("res://src/ui/panels/WebMarket.gd").new())
 	sidebar = VBoxContainer.new()
 	sidebar.custom_minimum_size.x = 345
 	columns.add_child(sidebar)
@@ -303,6 +309,7 @@ func _room_changed(id: String) -> void:
 		nav_buttons[key].set_pressed_no_signal(key == id)
 	scene.visible = id != "office"
 	scene_info.visible = id != "office"
+	warehouse_market.visible = id == "warehouse"
 	sidebar.hide()
 	main.management_tabs.visible = id == "office"
 	main.inspectors_container.hide()
@@ -317,12 +324,12 @@ func _rebuild_devices(id: String) -> void:
 		child.queue_free()
 	if id == "foundry":
 		for slot in range(Constants.SLOTS):
-			button_node(device_buttons, "Odstredivka %d" % (slot + 1), machine_modal.open_slot.bind(slot))
+			button_node(device_buttons, "Odstredivka %d" % (slot + 1), machine_modal.open_slot.bind(slot)).set_meta("tutorial_id", "machine:" + str(slot))
 	elif id == "warehouse":
 		for bin_id in ["iron", "steel", "copper", "tin", "zinc", "goods"]:
-			button_node(device_buttons, "Výrobky" if bin_id == "goods" else Constants.MATERIALS[bin_id].name, machine_modal.open_bin.bind(bin_id))
+			button_node(device_buttons, "Výrobky" if bin_id == "goods" else Constants.MATERIALS[bin_id].name, machine_modal.open_bin.bind(bin_id)).set_meta("tutorial_id", "bin:" + bin_id)
 	elif id == "washer":
-		button_node(device_buttons, "Otvoriť pieskovač", machine_modal.open_washer)
+		button_node(device_buttons, "Otvoriť pieskovač", machine_modal.open_washer).set_meta("tutorial_id", "washer:open")
 
 func _hall_input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:

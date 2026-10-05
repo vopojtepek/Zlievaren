@@ -1,5 +1,9 @@
 extends Node
 
+signal command_finished(command: Dictionary, result: Dictionary)
+signal game_started
+var tutorial_command_filter: Callable
+
 var state: Dictionary = {}
 var current_room: String = "foundry"
 var selected_machine: int = 0
@@ -10,6 +14,8 @@ func _ready() -> void:
 
 func new_game() -> void:
 	state = FoundryEngine.fresh()
+	state.tutorial = {"version": 1, "status": "active", "step": 0, "resume": -1, "role": ""}
+	game_started.emit()
 	current_room = "foundry"
 	selected_machine = 0
 	selected_bin = "iron"
@@ -24,8 +30,15 @@ func execute(command: Dictionary) -> Dictionary:
 		var eb = get_node_or_null("/root/EventBus")
 		if eb != null:
 			eb.toast_requested.emit(fail_res.message, true)
+		command_finished.emit(command, fail_res)
 		return fail_res
+	if tutorial_command_filter.is_valid() and not tutorial_command_filter.call(command):
+		var blocked = FoundryEngine.fail_res("Dokonči zvýraznený krok tutoriálu alebo tutoriál preskoč.")
+		EventBus.toast_requested.emit(blocked.message, true)
+		command_finished.emit(command, blocked)
+		return blocked
 	var res = FoundryEngine.perform(state, command)
+	command_finished.emit(command, res)
 	var eb = get_node_or_null("/root/EventBus")
 	if eb != null:
 		eb.toast_requested.emit(res.message, not res.ok)

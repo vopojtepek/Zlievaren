@@ -153,7 +153,7 @@ const OPERATORS: Array = [
 
 const CREWS: Array = [
 	{ "name": "Miči", "shift": "Ranná smena", "hours": "06:00 – 14:00", "color": "#c99255", "helmet": "#e9c568" },
-	{ "name": "Maslo", "shift": "Popoludňajšia smena", "hours": "14:00 – 22:00", "color": "#648fbb", "helmet": "#d6e2db" },
+	{ "name": "Maslo", "shift": "Poobedná smena", "hours": "14:00 – 22:00", "color": "#648fbb", "helmet": "#d6e2db" },
 	{ "name": "Matino", "shift": "Nočná smena", "hours": "22:00 – 06:00", "color": "#839967", "helmet": "#f2b965" }
 ]
 

@@ -1519,7 +1519,7 @@ static func automation(s: Dictionary) -> void:
 	for i in range(C.SLOTS):
 		var m: Variant = s.machines[i]
 		if m != null:
-			if m.state == "ready" and operator(s, i) != null:
+			if m.state == "ready" and operator(s, i) != null and s.get("tutorial", {}).get("status", "") != "active":
 				collect(s, i)
 			if m.auto and m.state == "idle" and can_cast(s, i).is_empty():
 				begin_cast(s, i)
@@ -2200,6 +2200,18 @@ static func restore(raw: String) -> Dictionary:
 		log_msg(s, "Novinky: polovičné absencie, riziko stroja + obsluha, všetky odliatky treba očistiť. Existujúce sklady ostali odomknuté.", "upgrade")
 
 	restore_personnel(s, a)
+	# Older saves intentionally have no active onboarding.
+	s.erase("tutorial")
+	var tutorial: Variant = a.get("tutorial", {})
+	if tutorial is Dictionary and tutorial.get("version") == 1 and tutorial.get("status", "") in ["active", "completed", "skipped"]:
+		var tutorial_step: Variant = tutorial.get("step", 0)
+		var tutorial_resume: Variant = tutorial.get("resume", -1)
+		if is_integer(tutorial_step, 0, 30) and is_integer(tutorial_resume, -1, 30):
+			s.tutorial = {"version": 1, "status": tutorial.status, "step": int(tutorial_step), "resume": int(tutorial_resume), "role": str(tutorial.get("role", ""))}
+			if not s.tutorial.role in ["ladle", "furnace", "warehouse", "operator", "washer", "foreman", ""]:
+				s.tutorial.role = ""
+			if s.tutorial.step == 4 and s.tutorial.role.is_empty():
+				s.tutorial.step = 3
 	if v < 12:
 		if s.delivery != null:
 			var d_ladle = duty(s, "ladle")

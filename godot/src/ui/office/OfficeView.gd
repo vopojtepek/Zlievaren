@@ -145,6 +145,7 @@ func _populate_recruit_positions() -> void:
 			var button = Button.new()
 			button.text = p.label
 			button.tooltip_text = "Nábor · " + p.label
+			button.set_meta("tutorial_id", "role:" + p.role + ":" + str(p.slot))
 			button.toggle_mode = true
 			button.custom_minimum_size = Vector2(116, 100)
 			button.set_meta("mobile_button_width", 116)
@@ -370,6 +371,7 @@ func _update_overview_tab(active_employees: Array, force: bool = false) -> void:
 			
 			var actions_box: BoxContainer = VBoxContainer.new() if e == null else BoxContainer.new()
 			actions_box.add_theme_constant_override("separation", 8)
+			actions_box.set_meta("tutorial_id", "cover:" + p.key)
 			var choices = FoundryEngine.overtime_choices(state, p.key)
 			for c in choices:
 				var btn_c = Button.new()
@@ -511,6 +513,7 @@ func _update_hire_tab(force: bool = false) -> void:
 				)
 				cand_grid.add_child(c_card)
 
+			cand_grid.set_meta("tutorial_id", "candidates:" + p.key)
 			shift_box.add_child(cand_grid)
 			
 		recruit_shifts_list.add_child(shift_box)

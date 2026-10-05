@@ -77,7 +77,7 @@ func run() -> void:
 					layout.scroll.scroll_vertical = 800
 					await settle()
 					await shot("%d-office-%s" % [dimensions.x, office_tab])
-				for tab in ["stock", "market", "contracts", "development", "ledger"]:
+				for tab in ["stock", "contracts", "development", "ledger"]:
 					main.management_tabs._switch_tab(tab)
 					await settle()
 					fits(main.management_tabs, tab)

@@ -53,7 +53,7 @@ func build(machine: Control, top_hud: Control, warehouse: Control, washer: Contr
 	_resize_panel()
 
 func _keep_focus_inside(control: Control) -> void:
-	if visible and not is_ancestor_of(control) and not _popup_visible():
+	if visible and not SimulationClock.tutorial_active and not is_ancestor_of(control) and not _popup_visible():
 		close_button.grab_focus()
 
 func _resize_panel() -> void:
@@ -112,7 +112,7 @@ func _backdrop_input(event: InputEvent) -> void:
 	accept_event()
 
 func _input(event: InputEvent) -> void:
-	if not visible or not event is InputEventKey or not event.pressed or event.echo:
+	if SimulationClock.tutorial_active or not visible or not event is InputEventKey or not event.pressed or event.echo:
 		return
 	# PopupMenu owns its keyboard events, including the first Escape.
 	if _popup_visible():

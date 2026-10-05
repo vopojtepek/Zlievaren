@@ -35,6 +35,9 @@ func _ready() -> void:
 	var layout = preload("res://src/ui/WebLayout.gd").new()
 	$UI.add_child(layout)
 	layout.build(self)
+	var tutorial = preload("res://src/ui/TutorialController.gd").new()
+	$UI.add_child(tutorial)
+	tutorial.build(self, layout)
 
 func _on_room_changed(room_name: String) -> void:
 	var is_office = (room_name == "office")

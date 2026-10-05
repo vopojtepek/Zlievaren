@@ -11,6 +11,12 @@ const MATERIAL_ICONS = {
 	"tin": preload("res://assets/ui/materials/tin.svg"),
 	"zinc": preload("res://assets/ui/materials/zinc.svg"),
 }
+const PRODUCT_ICONS = {
+	"clean_iron_pipe": preload("res://assets/textures/products/clean_iron_pipe.svg"),
+	"clean_steel_pipe": preload("res://assets/textures/products/clean_steel_pipe.svg"),
+	"clean_ring": preload("res://assets/textures/products/clean_ring.svg"),
+	"clean_bronze_bushing": preload("res://assets/textures/products/clean_bronze_bushing.svg"),
+}
 var selected: String = "raw:iron"
 var category: String = "raw"
 var rows: Dictionary = {}
@@ -51,11 +57,12 @@ func _ready() -> void:
 	left.size_flags_horizontal = SIZE_EXPAND_FILL
 	add_child(left)
 	var heading = _label(left, "Burza surovín a výrobkov", 25)
+	heading.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	heading.add_theme_font_override("font", preload("res://assets/fonts/BarlowCondensed-SemiBold.ttf"))
 	var categories = BoxContainer.new()
 	left.add_child(categories)
 	_button(categories, "Suroviny", func(): _category("raw"))
-	_button(categories, "Výrobky", func(): _category("goods"))
+	_button(categories, "Výrobky", func(): _category("goods")).set_meta("tutorial_id", "market:goods")
 	table = VBoxContainer.new()
 	table.add_theme_constant_override("separation", 7)
 	left.add_child(table)
@@ -75,6 +82,7 @@ func _ready() -> void:
 	ticket_title.add_theme_font_override("font", preload("res://assets/fonts/BarlowCondensed-SemiBold.ttf"))
 	ticket_title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	prices = _label(form, "", 14)
+	prices.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	stock = _label(form, "", 12)
 	_label(form, "Množstvo", 12)
 	quantity = SpinBox.new()
@@ -102,6 +110,15 @@ func _ready() -> void:
 		refresh(GameManager.state)
 	)
 	quantity.value_changed.connect(func(_v): refresh(GameManager.state))
+	EventBus.tick_processed.connect(func(s, _delta):
+		if is_visible_in_tree():
+			refresh(s)
+	)
+	EventBus.pause_toggled.connect(func(_paused): refresh(GameManager.state))
+	visibility_changed.connect(func():
+		if is_visible_in_tree() and quantity != null:
+			refresh(GameManager.state)
+	)
 	_category("raw")
 	_resize_market()
 
@@ -136,18 +153,18 @@ func _category(id: String) -> void:
 			selected = item
 			refresh(GameManager.state)
 		)
+		b.set_meta("tutorial_id", "item:" + item)
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		b.size_flags_horizontal = SIZE_EXPAND_FILL
 		b.clip_text = true
-		if id == "raw":
-			b.icon = MATERIAL_ICONS[key]
-			b.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
-			b.add_theme_constant_override("icon_max_width", 28)
-			b.add_theme_constant_override("h_separation", 8)
-			for icon_state in ["normal", "hover", "pressed", "hover_pressed", "focus", "disabled"]:
-				b.add_theme_color_override("icon_" + icon_state + "_color", Color.WHITE)
-			for style_state in ["normal", "hover", "pressed", "hover_pressed"]:
-				b.add_theme_stylebox_override(style_state, b.get_theme_stylebox(style_state).duplicate())
+		b.icon = MATERIAL_ICONS[key] if id == "raw" else PRODUCT_ICONS[key]
+		b.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		b.add_theme_constant_override("icon_max_width", 28)
+		b.add_theme_constant_override("h_separation", 8)
+		for icon_state in ["normal", "hover", "pressed", "hover_pressed", "focus", "disabled"]:
+			b.add_theme_color_override("icon_" + icon_state + "_color", Color.WHITE)
+		for style_state in ["normal", "hover", "pressed", "hover_pressed"]:
+			b.add_theme_stylebox_override(style_state, b.get_theme_stylebox(style_state).duplicate())
 		var values: Array[Label] = []
 		for i in range(3):
 			var l = _label(row, "")
@@ -180,16 +197,13 @@ func refresh(s: Dictionary) -> void:
 			labels[1].text = "Výkup: " + labels[1].text
 			labels[2].text = "Zásoby: " + labels[2].text
 		var button: Button = rows[item].button
-		if raw:
-			var accent = Color("#ffa75f") if item == selected else Color("#e8f0ed")
-			for font_state in ["font_color", "font_hover_color", "font_pressed_color", "font_hover_pressed_color", "font_focus_color"]:
-				button.add_theme_color_override(font_state, accent)
-			for style_state in ["normal", "hover", "pressed", "hover_pressed"]:
-				var style = button.get_theme_stylebox(style_state) as StyleBoxFlat
-				if style:
-					style.border_color = Color("#ffa75f") if item == selected else Color("#45606c")
-		else:
-			button.modulate = Color("#ffa75f") if item == selected else Color.WHITE
+		var accent = Color("#ffa75f") if item == selected else Color("#e8f0ed")
+		for font_state in ["font_color", "font_hover_color", "font_pressed_color", "font_hover_pressed_color", "font_focus_color"]:
+			button.add_theme_color_override(font_state, accent)
+		for style_state in ["normal", "hover", "pressed", "hover_pressed"]:
+			var style = button.get_theme_stylebox(style_state) as StyleBoxFlat
+			if style:
+				style.border_color = Color("#ffa75f") if item == selected else Color("#45606c")
 	var id = selected.split(":")[1]
 	var raw = category == "raw"
 	var q = FoundryEngine.quote(s, selected)
@@ -213,7 +227,9 @@ func refresh(s: Dictionary) -> void:
 		for order in s.limits:
 			var row = BoxContainer.new()
 			orders.add_child(row)
-			_label(row, "%s · %d ks · min. %d ₵" % [Constants.PRODUCTS[order.product].name, order.quantity, order.minPrice])
+			var description = _label(row, "%s · %d ks · min. %d ₵" % [Constants.PRODUCTS[order.product].name, order.quantity, order.minPrice])
+			description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			description.size_flags_horizontal = SIZE_EXPAND_FILL
 			_button(row, "Zrušiť", func():
 				GameManager.execute({"type": "cancelLimit", "id": order.id})
 				refresh(GameManager.state)

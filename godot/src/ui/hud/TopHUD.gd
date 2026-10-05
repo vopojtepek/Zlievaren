@@ -140,7 +140,7 @@ func _update_display() -> void:
 	rep_label.get_parent().visible = display_mode.mobile or size.x > 850
 
 func _unhandled_key_input(event: InputEvent) -> void:
-	if inspector_modal_open:
+	if inspector_modal_open or SimulationClock.tutorial_active:
 		return
 	if not event is InputEventKey or not event.pressed or event.echo:
 		return

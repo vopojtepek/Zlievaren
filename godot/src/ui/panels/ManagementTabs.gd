@@ -24,7 +24,6 @@ var extra_buttons: Dictionary = {}
 var stock_panel: BoxContainer
 var development_panel: BoxContainer
 var _last_extra_key: String = ""
-var web_market: BoxContainer
 
 func _get_state() -> Dictionary:
 	if not current_state.is_empty():
@@ -68,8 +67,7 @@ func _ready() -> void:
 	)
 	for c in market_panel.get_children():
 		c.hide()
-	web_market = preload("res://src/ui/panels/WebMarket.gd").new()
-	market_panel.add_child(web_market)
+	btn_market.hide()
 	custom_minimum_size = Vector2(0, 430)
 	add_theme_stylebox_override("panel", preload("res://src/ui/WebLayout.gd").panel_style("#162831", 22))
 	stock_panel = BoxContainer.new()
@@ -125,6 +123,8 @@ func _on_pause_toggled(_paused: bool) -> void:
 		_update_view(true)
 
 func _switch_tab(tab_name: String) -> void:
+	if tab_name == "market":
+		tab_name = "stock"
 	current_tab = tab_name
 	btn_market.button_pressed = (current_tab == "market")
 	btn_contracts.button_pressed = (current_tab == "contracts")
@@ -149,9 +149,7 @@ func _update_view(force: bool = false) -> void:
 	if state == null or state.is_empty():
 		return
 		
-	if current_tab == "market":
-		web_market.refresh(state)
-	elif current_tab == "contracts":
+	if current_tab == "contracts":
 		_update_contracts(state, force)
 	elif current_tab == "ledger":
 		_update_ledger(state, force)
